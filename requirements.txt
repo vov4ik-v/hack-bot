@@ -22,3 +22,4 @@ python-dotenv==1.0.1
 PyYAML==6.0.2
 typing_extensions==4.12.2
 yarl==1.18.3
+SQLAlchemy~=2.0.36

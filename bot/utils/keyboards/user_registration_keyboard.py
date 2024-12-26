@@ -17,8 +17,13 @@ consent_keyboard = InlineKeyboardMarkup(
 
 university_keyboard = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="НУЛП")],
-        [KeyboardButton(text="ЛНУ")]
+        [KeyboardButton(text="НУЛП"),
+        KeyboardButton(text="ЛНУ"),
+        KeyboardButton(text="УКУ"),
+        KeyboardButton(text="КПІ"),
+        KeyboardButton(text="КНУ"),
+        KeyboardButton(text="Ще в школі"),
+        KeyboardButton(text="Вже закінчив (-ла)")]
     ],
     resize_keyboard=True,
     one_time_keyboard=True
@@ -26,9 +31,10 @@ university_keyboard = ReplyKeyboardMarkup(
 
 course_keyboard = ReplyKeyboardMarkup(
     keyboard=[
-        [KeyboardButton(text="1"), KeyboardButton(text="2")],
-        [KeyboardButton(text="3"), KeyboardButton(text="4"), KeyboardButton(text="5")]
+        [KeyboardButton(text="Перший"), KeyboardButton(text="Другий")],
+        [KeyboardButton(text="Третій"), KeyboardButton(text="Четвертий"), KeyboardButton(text="На магістратурі"), KeyboardButton(text="Нічого з переліченого")]
     ],
     resize_keyboard=True,
     one_time_keyboard=True
 )
+

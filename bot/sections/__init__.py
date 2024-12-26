@@ -1,5 +1,5 @@
 from aiogram import Router
-from .user.registration.handlers import router as registration_router
+from .user.quiz_about_user.handlers import router as registration_router
 from .user.my_team.handlers import router as my_team_router
 from .user.test_task.handlers import router as test_task_router
 
