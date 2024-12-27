@@ -30,9 +30,22 @@ def validate_age(message: Message) -> bool:
 #     valid_universities = {"НУЛП", "ЛНУ", "УКУ", "КПІ", "КНУ", "Ще в школі", "Вже закінчив(-ла)"}
 #     return message.text in valid_universities
 
-# def validate_course(message: Message) -> bool:
-#     valid_courses = {"Перший", "Другий", "Третій", "Четвертий", "На магістартурі", "Нічого з переліченого"}
-#     return message.text in valid_courses
+def validate_course(message: Message) -> bool:
+    valid_courses = {
+        "перший": 1,
+        "другий": 2,
+        "третій": 3,
+        "четвертий": 4,
+        "на магістратурі": "магістратура",
+        "нічого з переліченого": "інше"
+    }
+
+    user_input = message.text.strip().lower()
+
+    if user_input.isdigit():
+        return int(user_input) in valid_courses.values()
+    else:
+        return user_input in valid_courses
 
 def validate_email(message: Message) -> bool:
     pattern = r"^([a-zA-Z0-9_\-\.]+)@([a-zA-Z0-9_\-\.]+)\.([a-zA-Z]{2,5})$"

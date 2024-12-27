@@ -16,7 +16,7 @@ from bot.utils.keyboards.user_registration_keyboard import consent_keyboard, con
     university_keyboard, get_source_keyboard, get_it_experience_keyboard
 from bot.utils.middleware.Time import is_duplicate_request
 from bot.utils.validators.user_registration_validator import validate_age, validate_email, \
- validate_text_input, validate_contact_input, validate_consent
+    validate_text_input, validate_contact_input, validate_consent, validate_course
 
 router = Router()
 
@@ -70,13 +70,20 @@ async def process_university(message: types.Message, state: FSMContext):
     if not validate_text_input(message):
         await message.answer(messages["university_incorrect"], reply_markup=university_keyboard)
         return
-    await state.update_data(university=message.text)
+
+    university = message.text
+    if university in ["Ще в школі", "Вже закінчив (-ла)"]:
+        await message.answer("Змагання проводяться лише для студентів. Дякуємо за інтерес!", reply_markup=ReplyKeyboardRemove())
+        await state.clear()
+        return
+
+    await state.update_data(university=university)
     await message.answer(messages["course_prompt"], reply_markup=course_keyboard)
     await state.set_state(RegistrationStates.waiting_for_course)
 
 @router.message(RegistrationStates.waiting_for_course)
 async def process_course(message: types.Message, state: FSMContext):
-    if not validate_text_input(message):
+    if not validate_course(message):
         await message.answer(messages["course_incorrect"], reply_markup=course_keyboard)
         return
     await state.update_data(course=message.text)
