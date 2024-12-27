@@ -9,3 +9,6 @@ class BroadcastStates(StatesGroup):
 
 class StageSelectionStates(StatesGroup):
     waiting_for_stage = State()
+
+class TeamMessageState(StatesGroup):
+    waiting_for_message = State()

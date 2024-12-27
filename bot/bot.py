@@ -6,10 +6,12 @@ from .sections.start import start_router
 from .stages import stages_router
 from .utils.validators.AlwaysKeyboardMiddleware import AlwaysKeyboardMiddleware
 
+
+
 bot = Bot(token=BOT_TOKEN)
 dp = Dispatcher()
 dp.message.middleware(AlwaysKeyboardMiddleware())
-
+# dp.message.middleware(ThrottlingMiddleware())
 
 dp.include_routers(
     start_router,

@@ -9,6 +9,7 @@ from bot.sections.user.my_team.states import TeamCreationStates, TeamJoinStates,
 from bot.sections.user.quiz_about_user.services import is_user_registered
 from bot.stages.utils.stages_service import get_current_stage
 from bot.utils.keyboards.team_keyboard import get_team_keyboard, cancel_send_cv_keyboard, handle_find_team_keyboard
+from bot.utils.middleware.Time import is_duplicate_request
 from bot.utils.validators.my_team_validator import validate_text_only
 from bot.stages.utils.bot_stage_filter import BotStageFilter
 from bot.utils.keyboards.start_keyboard import get_start_keyboard
@@ -19,22 +20,44 @@ router = Router()
 
 @router.message(F.text == "Моя Команда", BotStageFilter("before_registration"))
 async def handle_team_before_registration(message: types.Message):
+    user_id = message.from_user.id
+    message_text = message.text or ""
+
+    if is_duplicate_request(user_id, message_text):
+        return
     photo = FSInputFile(photo_path_team_image)
     await message.answer_photo(photo=photo, caption="Дочекайся початку реєстрації, щоб створити або долучитись до команди💻")
 
 @router.message(F.text == "Моя Команда", BotStageFilter(["registration", "before_event","event"]))
 async def handle_team_registration(message: types.Message, db: AgnosticDatabase):
     user_id = message.from_user.id
+    message_text = message.text or ""
+
+    if is_duplicate_request(user_id, message_text):
+        return
+
     await send_team_info(message, db, user_id)
 
 @router.message(F.text == "Знайти команду")
 async def handle_find_team(message: types.Message):
+    user_id = message.from_user.id
+    message_text = message.text or ""
+
+    if is_duplicate_request(user_id, message_text):
+        return
+
     photo = FSInputFile(photo_path_team_image)
     reply_markup = handle_find_team_keyboard()
     await message.answer_photo(photo=photo, caption=text_find_team, reply_markup=reply_markup)
 
 @router.message(F.text == "Головне меню")
 async def handle_back(message: types.Message, db):
+    user_id = message.from_user.id
+    message_text = message.text or ""
+
+    if is_duplicate_request(user_id, message_text):
+        return
+
     is_registered = await is_user_registered(db, message.from_user.username)
     stage = await get_current_stage(db)
     main_kb = get_start_keyboard(stage, is_registered)
@@ -131,9 +154,18 @@ async def process_join_team_password(message: types.Message, state: FSMContext, 
 @router.message(F.text == "Покинути команду")
 async def cmd_leave_team(message: types.Message, db: AgnosticDatabase):
     user_id = message.from_user.id
+    message_text = message.text or ""
+
+    if is_duplicate_request(user_id, message_text):
+        return
+
     stage = await get_current_stage(db)
     username = message.from_user.username
     is_registered = await is_user_registered(db, username)
+
+    if stage != "registration":
+        await message.answer("Покинути команду вже не можна", reply_markup=get_team_keyboard(True))
+        return
     if not await user_has_team(db, user_id):
         await message.answer("Ти ще не в жодній команді.")
         return
@@ -143,6 +175,11 @@ async def cmd_leave_team(message: types.Message, db: AgnosticDatabase):
 @router.message(F.text == "Надіслати GitHub-репозиторій")
 async def cmd_send_github(message: types.Message, state: FSMContext, db: AgnosticDatabase):
     user_id = message.from_user.id
+    message_text = message.text or ""
+
+    if is_duplicate_request(user_id, message_text):
+        return
+
     # current_stage = await get_current_stage(db)
     # if current_stage != "registration":
     #     await message.answer("Час додавання GitHub-репозиторію вже сплинув.")
@@ -176,6 +213,11 @@ async def process_github_link(message: types.Message, state: FSMContext, db: Agn
 @router.message(F.text == "Надіслати резюме")
 async def cmd_send_cv(message: types.Message, state: FSMContext, db: AgnosticDatabase):
     user_id = message.from_user.id
+    message_text = message.text or ""
+
+    if is_duplicate_request(user_id, message_text):
+        return
+
     # current_stage = await get_current_stage(db)
     # if current_stage != "registration":
     #     await message.answer("Час додавання резюме вже сплинув.")
@@ -188,6 +230,12 @@ async def cmd_send_cv(message: types.Message, state: FSMContext, db: AgnosticDat
 
 @router.message(F.text == "Відмінити", TeamCVStates.waiting_for_cv)
 async def cancel_cv_upload(message: types.Message, state: FSMContext):
+    user_id = message.from_user.id
+    message_text = message.text or ""
+
+    if is_duplicate_request(user_id, message_text):
+        return
+
     await state.clear()
     await message.answer("Завантаження CV скасовано.", reply_markup=get_team_keyboard(True))
 

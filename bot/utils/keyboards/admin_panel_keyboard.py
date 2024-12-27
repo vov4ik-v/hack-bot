@@ -33,9 +33,9 @@ def get_team_panel_keyboard() -> ReplyKeyboardMarkup:
             [
                 KeyboardButton(text="Видалити команду"),
                 KeyboardButton(text="Апрувнути тестове завдання"),
-                KeyboardButton(text="Апрувнути участь в івенті")
             ],
             [
+                KeyboardButton(text="Апрувнути участь в івенті"),
                 KeyboardButton(text="Назад до адмін-панелі")
             ]
         ],

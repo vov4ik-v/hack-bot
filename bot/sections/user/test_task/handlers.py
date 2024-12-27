@@ -3,11 +3,18 @@ from aiogram.types import FSInputFile
 from motor.core import AgnosticDatabase
 
 from bot.sections.user.test_task.services import get_bot_stage, prepare_response_based_on_stage
+from bot.utils.middleware.Time import is_duplicate_request
 
 router = Router()
 
 @router.message(F.text == "Тестове Завдання")
 async def test_task(message: types.Message, db: AgnosticDatabase):
+    user_id = message.from_user.id
+    message_text = message.text or ""
+
+    if is_duplicate_request(user_id, message_text):
+        return
+
     bot_stage = await get_bot_stage(db)
 
     response = await prepare_response_based_on_stage(bot_stage)

@@ -13,9 +13,10 @@ from bot.sections.user.quiz_about_user.states import RegistrationStates
 from bot.stages.utils.stages_service import get_current_stage
 from bot.utils.keyboards.start_keyboard import get_start_keyboard
 from bot.utils.keyboards.user_registration_keyboard import consent_keyboard, contact_keyboard, course_keyboard, \
-    university_keyboard
+    university_keyboard, get_source_keyboard, get_it_experience_keyboard
+from bot.utils.middleware.Time import is_duplicate_request
 from bot.utils.validators.user_registration_validator import validate_age, validate_email, \
-    validate_course, validate_text_input, validate_contact_input, validate_consent
+ validate_text_input, validate_contact_input, validate_consent
 
 router = Router()
 
@@ -23,6 +24,12 @@ router = Router()
 async def registration(message: types.Message, state: FSMContext, db: AgnosticDatabase):
     username = message.from_user.username
     chat_id = message.chat.id
+
+    user_id = message.from_user.id
+    message_text = message.text or ""
+
+    if is_duplicate_request(user_id, message_text):
+        return
 
     current_stage = await get_current_stage(db)
     if current_stage not in ["before_registration", "registration"]:
@@ -69,7 +76,7 @@ async def process_university(message: types.Message, state: FSMContext):
 
 @router.message(RegistrationStates.waiting_for_course)
 async def process_course(message: types.Message, state: FSMContext):
-    if not validate_course(message):
+    if not validate_text_input(message):
         await message.answer(messages["course_incorrect"], reply_markup=course_keyboard)
         return
     await state.update_data(course=message.text)
@@ -84,7 +91,7 @@ async def process_technologies(message: types.Message, state: FSMContext):
         return
     await state.update_data(technologies=message.text)
     await message.answer(messages["technologies_correct"])
-    await message.answer(messages["source_prompt"])
+    await message.answer(messages["source_prompt"], reply_markup=get_source_keyboard())
     await state.set_state(RegistrationStates.waiting_for_source)
 
 
@@ -95,7 +102,7 @@ async def process_source(message: types.Message, state: FSMContext):
         return
     await state.update_data(source=message.text)
     await message.answer(messages["source_correct"])
-    await message.answer(messages["it_experience_prompt"])
+    await message.answer(messages["it_experience_prompt"], reply_markup=get_it_experience_keyboard())
     await state.set_state(RegistrationStates.waiting_for_it_experience)
 
 
@@ -138,6 +145,13 @@ async def process_email(message: types.Message, state: FSMContext):
     await message.answer(messages["consent_prompt"], reply_markup=consent_keyboard)
     await state.set_state(RegistrationStates.waiting_for_consent)
 
+
+@router.message(RegistrationStates.waiting_for_consent)
+async def process_consent_input(message: types.Message, state: FSMContext):
+    await message.answer(
+        "Будь ласка, натисни 'Погоджуюсь' для підтвердження.",
+        reply_markup=consent_keyboard
+    )
 
 @router.callback_query(F.data == "consent_yes")
 async def process_consent(callback: types.CallbackQuery, state: FSMContext, db: AgnosticDatabase):

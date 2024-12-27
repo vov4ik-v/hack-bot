@@ -2,15 +2,42 @@ from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 
 
 def get_start_keyboard(stage: str, is_registered: bool = False) -> ReplyKeyboardMarkup:
-    if stage == "before_registration" or stage == "registration":
+    if stage == "before_registration":
         if is_registered:
             return ReplyKeyboardMarkup(
                 keyboard=[
                     [
                         KeyboardButton(text="Більше про BEST"),
                         KeyboardButton(text="Більше про HACKath0n"),
+                    ]
+                ],
+                resize_keyboard=True
+            )
+        else:
+            return ReplyKeyboardMarkup(
+                keyboard=[
+                    [
+                        KeyboardButton(text="Більше про BEST"),
+                        KeyboardButton(text="📝 Реєстрація")],
+                    [
+                        KeyboardButton(text="Більше про HACKath0n")
+                    ]
+                ],
+                resize_keyboard=True
+            )
+    elif stage == "registration":
+        if is_registered:
+            return ReplyKeyboardMarkup(
+                keyboard=[
+                    [
+                        KeyboardButton(text="Більше про BEST"),
+                        KeyboardButton(text="Більше про HACKath0n")
+                    ],
+                    [
                         KeyboardButton(text="Моя Команда"),
-                        KeyboardButton(text="Знайти команду"),
+                        KeyboardButton(text="Знайти команду")
+                    ],
+                    [
                         KeyboardButton(text="Тестове Завдання")
                     ]
                 ],
@@ -21,12 +48,15 @@ def get_start_keyboard(stage: str, is_registered: bool = False) -> ReplyKeyboard
                 keyboard=[
                     [
                         KeyboardButton(text="Більше про BEST"),
-                        KeyboardButton(text="📝 Реєстрація"),
-                        KeyboardButton(text="Більше про HACKath0n")
+                        KeyboardButton(text="📝 Реєстрація")
+                    ],
+                        [
+                            KeyboardButton(text="Більше про HACKath0n")
                     ]
                 ],
                 resize_keyboard=True
             )
+
     elif stage == "before_event":
         return ReplyKeyboardMarkup(
             keyboard=[
