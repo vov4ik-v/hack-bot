@@ -23,7 +23,16 @@ def cancel_send_cv_keyboard() -> ReplyKeyboardMarkup:
     keyboard = [
         [KeyboardButton(text="Відмінити")]
     ]
-    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
+    return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True, one_time_keyboard=True)
+
+def cancel_send_github_keyboard():
+    return ReplyKeyboardMarkup(
+        keyboard=[
+            [KeyboardButton(text="Відмінити")]
+        ],
+        resize_keyboard=True,
+        one_time_keyboard=True,
+    )
 
 
 def not_in_team_keyboard() -> InlineKeyboardMarkup:
@@ -39,3 +48,5 @@ def handle_find_team_keyboard() -> InlineKeyboardMarkup:
         [InlineKeyboardButton(text="Долучитись до чату", url=chat_link)]
     ]
     return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+
+

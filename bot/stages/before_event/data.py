@@ -9,7 +9,7 @@ participants_chat_photo = "asset/team_image.jpg"
 participants_chat_caption = (
     "Долучайтеся до спільного чату з організаторами та іншими командами у телеграмі!"
 )
-participants_chat_link = "https://t.me/+pSsGP63gxKwxN2My"
+participants_chat_link = "https://t.me/+pSsGP63"
 
 general_info_photo = "asset/more_about_hack.jpg"
 general_info_caption = (

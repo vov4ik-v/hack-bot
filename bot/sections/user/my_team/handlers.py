@@ -8,7 +8,8 @@ from bot.sections.user.my_team.services import user_has_team, update_user_cv, up
 from bot.sections.user.my_team.states import TeamCreationStates, TeamJoinStates, TeamGitHubStates, TeamCVStates
 from bot.sections.user.quiz_about_user.services import is_user_registered
 from bot.stages.utils.stages_service import get_current_stage
-from bot.utils.keyboards.team_keyboard import get_team_keyboard, cancel_send_cv_keyboard, handle_find_team_keyboard
+from bot.utils.keyboards.team_keyboard import get_team_keyboard, cancel_send_cv_keyboard, handle_find_team_keyboard, \
+    cancel_send_github_keyboard
 from bot.utils.middleware.Time import is_duplicate_request
 from bot.utils.validators.my_team_validator import validate_text_only
 from bot.stages.utils.bot_stage_filter import BotStageFilter
@@ -187,8 +188,24 @@ async def cmd_send_github(message: types.Message, state: FSMContext, db: Agnosti
     if not await user_has_team(db, user_id):
         await message.answer("Спочатку приєднайся до команди або створи її.")
         return
-    await message.answer("Надішли мені посилання на GitHub-репозиторій проєкту (одним повідомленням).")
+    await message.answer(
+        "Надішли мені посилання на GitHub-репозиторій проєкту (одним повідомленням). "
+        "Якщо передумав(-ла), відправ 'Відмінити'.",
+        reply_markup=cancel_send_github_keyboard()
+    )
     await state.set_state(TeamGitHubStates.waiting_for_github_link)
+
+@router.message(F.text == "Відмінити", TeamGitHubStates.waiting_for_github_link)
+async def cancel_github_upload(message: types.Message, state: FSMContext):
+    user_id = message.from_user.id
+    message_text = message.text or ""
+
+    if is_duplicate_request(user_id, message_text):
+        return
+
+    await state.clear()
+    await message.answer("Додавання GitHub-репозиторію скасовано.", reply_markup=get_team_keyboard(True))
+
 
 @router.message(TeamGitHubStates.waiting_for_github_link)
 async def process_github_link(message: types.Message, state: FSMContext, db: AgnosticDatabase):
@@ -256,3 +273,10 @@ async def process_cv_document(message: types.Message, state: FSMContext, db: Agn
 @router.message(TeamCVStates.waiting_for_cv)
 async def fallback_cv_upload(message: types.Message):
     await message.answer("Будь ласка, надішли файл із резюме або введи 'Відмінити', щоб скасувати.", reply_markup=cancel_send_cv_keyboard())
+
+@router.message(TeamGitHubStates.waiting_for_github_link)
+async def fallback_github_upload(message: types.Message):
+    await message.answer(
+        "Будь ласка, надішли правильне посилання на GitHub або введи 'Відмінити', щоб скасувати.",
+        reply_markup=cancel_send_github_keyboard()
+    )

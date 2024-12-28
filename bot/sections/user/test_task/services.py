@@ -29,7 +29,6 @@ async def prepare_response_based_on_stage(bot_stage: dict) -> dict:
             )
         }
     else:
-        # Завдання готове
         return {
             "link": bot_stage["linkForTest"],
             "caption": (
