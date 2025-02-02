@@ -88,7 +88,9 @@ async def process_stage_selection(message: Message, state: FSMContext, db: Agnos
                 chat_id = recipient.get("chat_id")
                 if chat_id:
                     try:
-                        await message.bot.send_message(chat_id, "Я вас вітаю! Ви пройшли тестове завдання!",
+                        await message.bot.send_message(chat_id, """
+                        🚀 Привіт, майбутні чемпіони! Ви успішно виконали тестове завдання – це вже успіх! 🏆
+Ваша команда - потенційний переможець BEST::HACKath0n 2025! Тепер для вас відкриваються ексклюзивні деталі проєкту. 🔥""",
                                                        reply_markup=get_start_keyboard(new_stage, True))
                     except Exception as e:
                         print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
