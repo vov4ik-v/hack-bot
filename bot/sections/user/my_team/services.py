@@ -1,7 +1,7 @@
 from datetime import datetime
 from aiogram.types import Message, FSInputFile, InlineKeyboardMarkup, InlineKeyboardButton
 from motor.core import AgnosticDatabase
-from bot.utils.keyboards.start_keyboard import get_start_keyboard
+from bot.utils.keyboards.start_keyboard import get_start_keyboard, get_user_team_info
 from bot.sections.user.quiz_about_user.services import is_user_registered
 from bot.stages.utils.stages_service import get_current_stage
 from bson import ObjectId
@@ -108,6 +108,7 @@ async def get_team_by_id(db: AgnosticDatabase, team_id: ObjectId) -> dict:
 async def send_team_info(message: Message, db: AgnosticDatabase, user_id: int):
     user_doc = await db.get_collection("users").find_one({"chat_id": user_id})
     photo_path = "asset/team_image.jpg"
+    test_approved, event_approved = await get_user_team_info(db, message.from_user.id)
     stage = await get_current_stage(db)
     username = message.from_user.username
     is_registered = await is_user_registered(db, username)
@@ -126,7 +127,7 @@ async def send_team_info(message: Message, db: AgnosticDatabase, user_id: int):
     if not team_doc:
         await message.answer(
             "Команду не знайдено🥲. Можливо, вона була видалена. Створи нову або приєднайся до існуючої.",
-            reply_markup=get_start_keyboard(stage, is_registered))
+            reply_markup=get_start_keyboard(stage, is_registered, test_approved, event_approved))
         return
     team_members_cursor = db.get_collection("users").find({"team_id": team_id})
     team_members = await team_members_cursor.to_list(length=None)

@@ -11,7 +11,7 @@ from bot.sections.user.quiz_about_user.services import is_user_registered
 from bot.sections.user.quiz_about_user.services import process_registration_data
 from bot.sections.user.quiz_about_user.states import RegistrationStates
 from bot.stages.utils.stages_service import get_current_stage
-from bot.utils.keyboards.start_keyboard import get_start_keyboard
+from bot.utils.keyboards.start_keyboard import get_start_keyboard, get_user_team_info
 from bot.utils.keyboards.user_registration_keyboard import consent_keyboard, contact_keyboard, course_keyboard, \
     university_keyboard, get_source_keyboard, get_it_experience_keyboard
 from bot.utils.middleware.Time import is_duplicate_request
@@ -185,7 +185,13 @@ async def process_consent_input(message: types.Message, state: FSMContext):
     )
 
 @router.callback_query(F.data == "consent_yes")
-async def process_consent(callback: types.CallbackQuery, state: FSMContext, db: AgnosticDatabase):
+async def process_consent(
+    callback: types.CallbackQuery,
+    state: FSMContext,
+    db: AgnosticDatabase
+):
+    test_approved, event_approved = await get_user_team_info(db, callback.from_user.id)
+
     if not validate_consent(callback.data):
         await callback.answer("Будь ласка, натисни 'Погоджуюсь' для підтвердження.")
         return
@@ -194,19 +200,22 @@ async def process_consent(callback: types.CallbackQuery, state: FSMContext, db: 
 
     try:
         photo = FSInputFile(photos["success_register_photo"])
-
         state_data = await state.get_data()
         user_data = await process_registration_data(db, state_data)
-
         await state.clear()
 
         username = callback.from_user.username
         is_registered = await is_user_registered(db, username)
         stage = await get_current_stage(db)
 
-        updated_keyboard = get_start_keyboard(stage, is_registered)
+        updated_keyboard = get_start_keyboard(stage, is_registered, test_approved, event_approved)
 
-        await callback.message.answer_photo(photo=photo, caption=messages["registration_complete"], parse_mode="HTML", reply_markup=updated_keyboard)
+        await callback.message.answer_photo(
+            photo=photo,
+            caption=messages["registration_complete"],
+            parse_mode="HTML",
+            reply_markup=updated_keyboard
+        )
 
     except Exception as e:
         print(f"Помилка при збереженні даних: {e}")

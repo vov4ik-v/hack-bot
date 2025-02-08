@@ -13,7 +13,7 @@ from bot.utils.keyboards.team_keyboard import get_team_keyboard, cancel_send_cv_
 from bot.utils.middleware.Time import is_duplicate_request
 from bot.utils.validators.my_team_validator import validate_text_only
 from bot.stages.utils.bot_stage_filter import BotStageFilter
-from bot.utils.keyboards.start_keyboard import get_start_keyboard
+from bot.utils.keyboards.start_keyboard import get_start_keyboard, get_user_team_info
 from bot.sections.user.my_team.services import send_team_info
 from bot.sections.user.my_team.data import photo_path_team_image, text_find_team, chat_link
 
@@ -55,13 +55,14 @@ async def handle_find_team(message: types.Message):
 async def handle_back(message: types.Message, db):
     user_id = message.from_user.id
     message_text = message.text or ""
+    test_approved, event_approved = await get_user_team_info(db, message.from_user.id)
 
     if is_duplicate_request(user_id, message_text):
         return
 
     is_registered = await is_user_registered(db, message.from_user.username)
     stage = await get_current_stage(db)
-    main_kb = get_start_keyboard(stage, is_registered)
+    main_kb = get_start_keyboard(stage, is_registered, test_approved, event_approved)
     await message.answer("Ви вернулись в головне меню.", reply_markup=main_kb)
 
 @router.callback_query(F.data == "create_team")
@@ -135,6 +136,7 @@ async def process_join_team_name(message: types.Message, state: FSMContext):
 async def process_join_team_password(message: types.Message, state: FSMContext, db: AgnosticDatabase):
     if not await validate_text_only(message):
         return
+
     password = message.text.strip()
     user_id = message.from_user.id
     data = await state.get_data()
@@ -147,11 +149,24 @@ async def process_join_team_password(message: types.Message, state: FSMContext, 
     if team_doc.get("password") != password:
         await message.answer("Неправильний пароль. Спробуй ще раз або скасуй дію.❌")
         return
+
     team_id = team_doc["_id"]
+    member_count = await db.get_collection("users").count_documents({"team_id": team_id})
+    if member_count >= 5:
+        await message.answer(
+            f"Команда <b>{team_doc['name']}</b> вже має 5 учасників і не може прийняти більше.",
+            parse_mode="HTML"
+        )
+        await state.clear()
+        return
     await set_user_team(db, user_id, team_id)
     await state.clear()
-    await message.answer(f"Вітаємо! Тепер ти в команді {team_doc['name']}.", reply_markup=get_team_keyboard(True))
+    await message.answer(
+        f"Вітаємо! Тепер ти в команді {team_doc['name']}.",
+        reply_markup=get_team_keyboard(True)
+    )
     await send_team_info(message, db, user_id)
+
 
 @router.message(F.text == "Покинути команду")
 async def cmd_leave_team(message: types.Message, db: AgnosticDatabase):
@@ -164,6 +179,7 @@ async def cmd_leave_team(message: types.Message, db: AgnosticDatabase):
     stage = await get_current_stage(db)
     username = message.from_user.username
     is_registered = await is_user_registered(db, username)
+    test_approved, event_approved = await get_user_team_info(db, message.from_user.id)
 
     if stage != "registration":
         await message.answer("Покинути команду вже не можна.", reply_markup=get_team_keyboard(True))
@@ -172,7 +188,7 @@ async def cmd_leave_team(message: types.Message, db: AgnosticDatabase):
         await message.answer("Ти ще не в жодній команді.")
         return
     await unset_user_team(db, user_id)
-    await message.answer("Ти покинув(-ла) команду.", reply_markup=get_start_keyboard(stage, is_registered))
+    await message.answer("Ти покинув(-ла) команду.", reply_markup=get_start_keyboard(stage, is_registered, test_approved, event_approved))
 
 @router.message(F.text == "Надіслати GitHub-репозиторій")
 async def cmd_send_github(message: types.Message, state: FSMContext, db: AgnosticDatabase):

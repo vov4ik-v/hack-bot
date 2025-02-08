@@ -27,7 +27,7 @@ from bot.utils.keyboards.admin_keyboard import (
     get_broadcast_inline_keyboard,
     get_team_actions_inline_keyboard
 )
-from bot.utils.keyboards.start_keyboard import get_start_keyboard
+from bot.utils.keyboards.start_keyboard import get_start_keyboard, get_user_team_info
 from config_reader import ADMIN_PASSWORD
 
 router = Router()
@@ -41,8 +41,9 @@ async def open_admin_panel(message: types.Message):
 @router.message(F.text == "Вийти з адмінки")
 async def handle_admin_exit(message: Message, db: AgnosticDatabase):
     is_registered = await is_user_registered(db, message.from_user.username)
+    test_approved, event_approved = await get_user_team_info(db, message.from_user.id)
     stage = await get_current_stage(db)
-    await message.answer(ADMIN_EXIT, reply_markup=get_start_keyboard(stage, is_registered))
+    await message.answer(ADMIN_EXIT, reply_markup=get_start_keyboard(stage, is_registered, test_approved, event_approved))
 
 
 @router.message(F.text == "Переключити секцію")
@@ -77,14 +78,16 @@ async def process_stage_selection(message: Message, state: FSMContext, db: Agnos
     await update_stage(db, new_stage)
 
     all_users = await get_all_users(db)
-    teams_passed_test = await get_teams_by_test_status(db, True)
-    teams_not_passed_test = await get_teams_by_test_status(db, False)
+
+
+
     teams_approved_event = await get_teams_with_participation_status(db, True)
     teams_not_approved_event = await get_teams_with_participation_status(db, False)
-    team_ids_passed = [team["_id"] for team in teams_passed_test]
-    team_ids_not_passed = [team["_id"] for team in teams_not_passed_test]
+
     team_ids_approved_event = [team["_id"] for team in teams_approved_event]
     team_ids_not_approved_event = [team["_id"] for team in teams_not_approved_event]
+
+    test_approved, event_approved = await get_user_team_info(db, message.from_user.id)
 
     if new_stage in ["before_registration", "registration"]:
         message_text = (
@@ -100,12 +103,29 @@ async def process_stage_selection(message: Message, state: FSMContext, db: Agnos
                     await message.bot.send_message(
                         chat_id,
                         message_text,
-                        reply_markup=get_start_keyboard(new_stage, True)
+                        reply_markup=get_start_keyboard(new_stage, True, test_approved, event_approved)
                     )
                 except Exception as e:
                     print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
 
     elif new_stage == "test":
+        all_teams = await db.get_collection("teams").find({}).to_list(length=None)
+        for team in all_teams:
+            team_id = team["_id"]
+            member_count = await db.get_collection("users").count_documents({"team_id": team_id})
+            if member_count >= 3:
+                await db.get_collection("teams").update_one(
+                    {"_id": team_id},
+                    {"$set": {"test_task_status": True}}
+                )
+
+        teams_passed_test = await get_teams_by_test_status(db, True)
+        teams_not_passed_test = await get_teams_by_test_status(db, False)
+
+        team_ids_passed = [team["_id"] for team in teams_passed_test]
+        team_ids_not_passed = [team["_id"] for team in teams_not_passed_test]
+
+        test_approved, event_approved = await get_user_team_info(db, message.from_user.id)
         for team_id in team_ids_passed:
             recipients = await get_users_by_team_ids(db, [team_id])
             for recipient in recipients:
@@ -118,7 +138,7 @@ async def process_stage_selection(message: Message, state: FSMContext, db: Agnos
                                 "Вітаємо! Ваша команда допущена до тестового. "
                                 "Слідкуйте за оновленнями й успіхів!"
                             ),
-                            reply_markup=get_start_keyboard(new_stage, True)
+                            reply_markup=get_start_keyboard(new_stage, True, test_approved, event_approved)
                         )
                     except Exception as e:
                         print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
@@ -132,7 +152,7 @@ async def process_stage_selection(message: Message, state: FSMContext, db: Agnos
                         await message.bot.send_message(
                             chat_id,
                             "На жаль, ваша команда не допущена до тестового",
-                            reply_markup=get_start_keyboard("registration", True)
+                            reply_markup=get_start_keyboard("registration", True, test_approved, event_approved)
                         )
                     except Exception as e:
                         print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
@@ -152,7 +172,7 @@ async def process_stage_selection(message: Message, state: FSMContext, db: Agnos
                                 "Ваша команда - потенційний переможець BEST::HACKath0n 2025! "
                                 "Тепер для вас відкриваються ексклюзивні деталі проєкту. 🔥"
                             ),
-                            reply_markup=get_start_keyboard(new_stage, True)
+                            reply_markup=get_start_keyboard(new_stage, True, test_approved, event_approved)
                         )
                     except Exception as e:
                         print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
@@ -166,7 +186,7 @@ async def process_stage_selection(message: Message, state: FSMContext, db: Agnos
                         await message.bot.send_message(
                             chat_id,
                             "Не засмучуйтесь! Ви не пройшли тестове завдання.",
-                            reply_markup=get_start_keyboard("registration", True)
+                            reply_markup=get_start_keyboard("registration", True, test_approved, event_approved)
                         )
                     except Exception as e:
                         print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
@@ -184,7 +204,7 @@ async def process_stage_selection(message: Message, state: FSMContext, db: Agnos
                         await message.bot.send_message(
                             chat_id,
                             message_text,
-                            reply_markup=get_start_keyboard(new_stage, True)
+                            reply_markup=get_start_keyboard(new_stage, True, test_approved, event_approved)
                         )
                     except Exception as e:
                         print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
