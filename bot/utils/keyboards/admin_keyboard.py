@@ -15,6 +15,8 @@ def get_main_admin_keyboard() -> ReplyKeyboardMarkup:
             ],
             [
                 KeyboardButton(text="Завантажити всі CV"),
+                KeyboardButton(text="Юзери без CV")
+
             ]
         ],
         resize_keyboard=True

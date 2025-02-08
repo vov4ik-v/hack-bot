@@ -641,3 +641,45 @@ async def handle_download_all_cvs(message: Message, db: AgnosticDatabase):
     await message.answer_document(FSInputFile(main_zip_filename))
     os.remove(main_zip_filename)
     await message.answer("Усі CV завантажено.")
+
+@router.message(F.text == "Юзери без CV")
+async def handle_users_without_cv(message: Message, db: AgnosticDatabase):
+    users_without_cv = await db.get_collection("users").find({
+        "$or": [
+            {"resume": {"$exists": False}},
+            {"resume": None}
+        ]
+    }).to_list(length=None)
+
+    if not users_without_cv:
+        await message.answer("Усі користувачі вже завантажили своє CV. ✅")
+        return
+
+    grouped_by_team = {}
+    for user in users_without_cv:
+        team_id = user.get("team_id")
+        if team_id not in grouped_by_team:
+            grouped_by_team[team_id] = []
+        grouped_by_team[team_id].append(user)
+
+    lines = []
+    for team_id, members in grouped_by_team.items():
+        if team_id:
+            team_doc = await db.get_collection("teams").find_one({"_id": team_id})
+            team_name = team_doc.get("name", f"team_{team_id}") if team_doc else "Невідома команда"
+        else:
+            team_name = "Без команди"
+
+        lines.append(f"\n<b>Команда:</b> {team_name}")
+
+        for user in members:
+            username = user.get("contact", {}).get("username")
+            name = user.get("name", "Без імені")
+            if username:
+                lines.append(f"  • {name} (@{username})")
+            else:
+                lines.append(f"  • {name}")
+
+    final_text = "\n".join(lines)
+    await message.answer(final_text, parse_mode="HTML")
+
