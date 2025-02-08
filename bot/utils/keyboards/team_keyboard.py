@@ -21,14 +21,14 @@ def get_team_keyboard(is_in_team: bool) -> ReplyKeyboardMarkup:
 
 def cancel_send_cv_keyboard() -> ReplyKeyboardMarkup:
     keyboard = [
-        [KeyboardButton(text="Відмінити")]
+        [KeyboardButton(text="Скасувати")]
     ]
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True, one_time_keyboard=True)
 
 def cancel_send_github_keyboard():
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="Відмінити")]
+            [KeyboardButton(text="Скасувати")]
         ],
         resize_keyboard=True,
         one_time_keyboard=True,

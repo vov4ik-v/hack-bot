@@ -13,6 +13,9 @@ def get_main_admin_keyboard() -> ReplyKeyboardMarkup:
                 KeyboardButton(text="Вийти з адмінки")
 
             ],
+            [
+                KeyboardButton(text="Завантажити всі CV"),
+            ]
         ],
         resize_keyboard=True
     )
@@ -26,7 +29,8 @@ def get_stage_selection_keyboard() -> ReplyKeyboardMarkup:
             [KeyboardButton(text="Підготовка до івенту"),
              KeyboardButton(text="Івент")],
             [KeyboardButton(text="Після івенту"),
-             KeyboardButton(text="Скасувати зміну стадії")]
+             KeyboardButton(text="Тестове")],
+            [KeyboardButton(text="Скасувати зміну стадії")]
         ],
         resize_keyboard=True
     )
@@ -70,10 +74,15 @@ def get_broadcast_inline_keyboard() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="У командах менше 3 людей", callback_data="broadcast:teams_less_than_3"),
             ],
             [
-                InlineKeyboardButton(text="У командах і пройшли тестове",
+                InlineKeyboardButton(text="У командах і допущені тестове",
                                      callback_data="broadcast:in_teams_passed_test"),
-                InlineKeyboardButton(text="У командах і не пройшли тестове",
+                InlineKeyboardButton(text="У командах і не допущені до тестового",
                                      callback_data="broadcast:in_teams_not_passed_test"),
+            ],
+            [
+                InlineKeyboardButton(text="У командах і допущені до івент", callback_data="broadcast:in_teams_approved_event"),
+                InlineKeyboardButton(text="У командах і не допущені до івенту",
+                                     callback_data="broadcast:in_teams_not_approved_event"),
             ],
             [
                 InlineKeyboardButton(text="Скасувати", callback_data="broadcast:cancel")

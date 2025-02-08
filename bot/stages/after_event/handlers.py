@@ -19,7 +19,7 @@ async def handle_feedback_form(message: types.Message):
         return
 
     reply_markup = get_feedback_form_keyboard(feedback_form_link)
-    await message.answer(feedback_form_caption, reply_markup=reply_markup)
+    await message.answer(feedback_form_caption, reply_markup=reply_markup, parse_mode="HTML")
 
 @router.message(F.text == "Переможці")
 async def handle_winners(message: types.Message):

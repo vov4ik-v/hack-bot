@@ -56,5 +56,8 @@ async def get_all_users(db: AgnosticDatabase):
 async def get_teams_by_test_status(db: AgnosticDatabase, status: bool):
     return await db.get_collection("teams").find({"test_task_status": status}).to_list(length=None)
 
+async def get_teams_with_participation_status(db: AgnosticDatabase, status: bool):
+    return await db.get_collection("teams").find({"participation_status": status}).to_list(length=None)
+
 async def get_users_by_team_ids(db: AgnosticDatabase, team_ids: list):
     return await db.get_collection("users").find({"team_id": {"$in": team_ids}}).to_list(length=None)

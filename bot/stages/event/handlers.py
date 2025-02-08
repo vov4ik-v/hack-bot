@@ -22,7 +22,7 @@ async def handle_event_rules(message: types.Message):
         return
 
     photo = FSInputFile(event_rules_photo)
-    await message.answer_photo(photo=photo, caption=event_rules_caption)
+    await message.answer_photo(photo=photo, caption=event_rules_caption, parse_mode="HTML")
 
 @router.message(F.text == "Основне Завдання", BotStageFilter("event"))
 async def handle_main_task(message: types.Message):
@@ -33,7 +33,7 @@ async def handle_main_task(message: types.Message):
         return
 
     photo = FSInputFile(main_task_photo)
-    await message.answer_photo(photo=photo, caption=main_task_caption)
+    await message.answer_photo(photo=photo, caption=main_task_caption, parse_mode="HTML")
 
 @router.message(F.text == "Розклад", BotStageFilter("event"))
 async def handle_schedule(message: types.Message):
@@ -45,7 +45,7 @@ async def handle_schedule(message: types.Message):
 
     photo = FSInputFile(schedule_photo)
     reply_markup = get_schedule_keyboard(schedule_link)
-    await message.answer_photo(photo=photo, caption=schedule_caption, reply_markup=reply_markup)
+    await message.answer_photo(photo=photo, caption=schedule_caption, reply_markup=reply_markup, parse_mode="HTML")
 
 @router.message(F.text == "Команді потрібна допомога", BotStageFilter("event"))
 async def handle_team_help(message: types.Message):
@@ -56,4 +56,4 @@ async def handle_team_help(message: types.Message):
         return
 
     photo = FSInputFile(team_help_photo)
-    await message.answer_photo(photo=photo, caption=team_help_caption)
+    await message.answer_photo(photo=photo, caption=team_help_caption, parse_mode="HTML")

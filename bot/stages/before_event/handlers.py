@@ -21,7 +21,7 @@ async def handle_event_location(message: types.Message):
         return
 
     photo = FSInputFile(event_location_photo)
-    await message.answer_photo(photo=photo, caption=event_location_caption)
+    await message.answer_photo(photo=photo, caption=event_location_caption, parse_mode="HTML")
 
 @router.message(F.text == "Чат для учасників", BotStageFilter("before_event"))
 async def handle_participants_chat(message: types.Message):
@@ -33,7 +33,7 @@ async def handle_participants_chat(message: types.Message):
 
     photo = FSInputFile(participants_chat_photo)
     reply_markup = get_participants_chat_keyboard(participants_chat_link)
-    await message.answer_photo(photo=photo, caption=participants_chat_caption, reply_markup=reply_markup)
+    await message.answer_photo(photo=photo, caption=participants_chat_caption, reply_markup=reply_markup, parse_mode="HTML")
 
 @router.message(F.text == "Загальна інформація", BotStageFilter("before_event"))
 async def handle_general_info(message: types.Message):
@@ -45,4 +45,4 @@ async def handle_general_info(message: types.Message):
 
     photo = FSInputFile(general_info_photo)
     reply_markup = get_general_info_keyboard(general_info_link)
-    await message.answer_photo(photo=photo, caption=general_info_caption, reply_markup=reply_markup)
+    await message.answer_photo(photo=photo, caption=general_info_caption, reply_markup=reply_markup, parse_mode="HTML")

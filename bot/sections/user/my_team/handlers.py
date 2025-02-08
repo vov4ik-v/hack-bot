@@ -29,7 +29,7 @@ async def handle_team_before_registration(message: types.Message):
     photo = FSInputFile(photo_path_team_image)
     await message.answer_photo(photo=photo, caption="Дочекайся початку реєстрації, щоб створити або долучитись до команди💻")
 
-@router.message(F.text == "Моя Команда", BotStageFilter(["registration", "before_event","event"]))
+@router.message(F.text == "Моя Команда", BotStageFilter(["registration","test", "before_event","event"]))
 async def handle_team_registration(message: types.Message, db: AgnosticDatabase):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -49,7 +49,7 @@ async def handle_find_team(message: types.Message):
 
     photo = FSInputFile(photo_path_team_image)
     reply_markup = handle_find_team_keyboard()
-    await message.answer_photo(photo=photo, caption=text_find_team, reply_markup=reply_markup)
+    await message.answer_photo(photo=photo, caption=text_find_team, reply_markup=reply_markup, parse_mode="HTML")
 
 @router.message(F.text == "Головне меню")
 async def handle_back(message: types.Message, db):
@@ -62,17 +62,17 @@ async def handle_back(message: types.Message, db):
     is_registered = await is_user_registered(db, message.from_user.username)
     stage = await get_current_stage(db)
     main_kb = get_start_keyboard(stage, is_registered)
-    await message.answer("Ви вернулись в головне меню", reply_markup=main_kb)
+    await message.answer("Ви вернулись в головне меню.", reply_markup=main_kb)
 
 @router.callback_query(F.data == "create_team")
 async def cmd_create_team(callback_query: types.CallbackQuery, state: FSMContext, db: AgnosticDatabase):
     user_id = callback_query.from_user.id
     current_stage = await get_current_stage(db)
     if current_stage != "registration":
-        await callback_query.message.answer("Реєстрація вже завершена. Очікуємо вас наступного року.")
+        await callback_query.message.answer("На жаль, <b>реєстрацію вже завершено!</b> Чекаємо тебе наступного року 🫂", parse_mode="HTML")
         return
     if await user_has_team(db, user_id):
-        await callback_query.message.answer("Ти вже в команді. Спочатку вийди зі своєї команди, щоб створити нову.")
+        await callback_query.message.answer("Ти вже в команді. Спочатку вийди з неї, щоб створити нову.")
         return
     await callback_query.message.answer("Введи логін (одним повідомленням).")
     await state.set_state(TeamCreationStates.waiting_for_team_name)
@@ -82,8 +82,8 @@ async def process_team_name(message: types.Message, state: FSMContext):
     if not await validate_text_only(message):
         return
     team_name = message.text.strip()
-    if len(team_name) < 2 or len(team_name) > 30:
-        await message.answer("Назва команди має бути від 2 до 30 символів. Спробуй ще раз.")
+    if len(team_name) < 2 or len(team_name) > 15:
+        await message.answer("Назва команди має містити від 2 до 15 символів. Спробуй ще раз.")
         return
     await state.update_data(team_name=team_name)
     await message.answer("Чудово! Тепер введи пароль для команди.")
@@ -99,13 +99,14 @@ async def process_team_password(message: types.Message, state: FSMContext, db: A
     team_name = data.get("team_name")
     existing_team = await get_team_by_name(db, team_name)
     if existing_team:
-        await message.answer(f"Команда з назвою <b>{team_name}</b> вже існує. Обери іншу назву або приєднайся до неї.")
+        await message.answer(f"Команда з назвою <b>{team_name}</b> вже існує. Обери іншу назву або приєднайся до неї.",
+                             parse_mode="HTML")
         await state.clear()
         return
     team_id = await create_team(db, team_name, password)
     await set_user_team(db, user_id, team_id)
     await state.clear()
-    await message.answer(f"Команда {team_name} успішно створена.")
+    await message.answer(f"Команда {team_name} успішно створена.🎉")
     await send_team_info(message, db, user_id)
 
 @router.callback_query(F.data == "join_team")
@@ -113,12 +114,12 @@ async def cmd_join_team(callback_query: types.CallbackQuery, state: FSMContext, 
     user_id = callback_query.from_user.id
     current_stage = await get_current_stage(db)
     if current_stage != "registration":
-        await callback_query.message.answer("Реєстрація вже завершена. Очікуємо вас наступного року.")
+        await callback_query.message.answer("На жаль, <b>реєстрацію вже завершено!</b> Чекаємо тебе наступного року 🫂", parse_mode="HTML")
         return
     if await user_has_team(db, user_id):
         await callback_query.message.answer("Ти вже в команді. Спочатку покинь її, щоб приєднатися до нової.")
         return
-    await callback_query.message.answer("Введи логін, до якої хочеш приєднатися.")
+    await callback_query.message.answer("Введи логін команди, до якої хочеш приєднатися.")
     await state.set_state(TeamJoinStates.waiting_for_team_name)
 
 @router.message(TeamJoinStates.waiting_for_team_name)
@@ -140,11 +141,11 @@ async def process_join_team_password(message: types.Message, state: FSMContext, 
     team_name = data.get("team_name")
     team_doc = await get_team_by_name(db, team_name)
     if not team_doc:
-        await message.answer(f"Команди з назвою <b>{team_name}</b> не знайдено.")
+        await message.answer(f"Команду з назвою <b>{team_name}</b> не знайдено.", parse_mode="HTML")
         await state.clear()
         return
     if team_doc.get("password") != password:
-        await message.answer("Невірний пароль. Спробуй ще раз або скасуй дію.")
+        await message.answer("Неправильний пароль. Спробуй ще раз або скасуй дію.❌")
         return
     team_id = team_doc["_id"]
     await set_user_team(db, user_id, team_id)
@@ -165,7 +166,7 @@ async def cmd_leave_team(message: types.Message, db: AgnosticDatabase):
     is_registered = await is_user_registered(db, username)
 
     if stage != "registration":
-        await message.answer("Покинути команду вже не можна", reply_markup=get_team_keyboard(True))
+        await message.answer("Покинути команду вже не можна.", reply_markup=get_team_keyboard(True))
         return
     if not await user_has_team(db, user_id):
         await message.answer("Ти ще не в жодній команді.")
@@ -186,16 +187,16 @@ async def cmd_send_github(message: types.Message, state: FSMContext, db: Agnosti
     #     await message.answer("Час додавання GitHub-репозиторію вже сплинув.")
     #     return
     if not await user_has_team(db, user_id):
-        await message.answer("Спочатку приєднайся до команди або створи її.")
+        await message.answer("Спочатку приєднайся до команди або створи свою.")
         return
     await message.answer(
         "Надішли мені посилання на GitHub-репозиторій проєкту (одним повідомленням). "
-        "Якщо передумав(-ла), відправ 'Відмінити'.",
+        "Якщо передумав(-ла), відправ 'Скасувати'.",
         reply_markup=cancel_send_github_keyboard()
     )
     await state.set_state(TeamGitHubStates.waiting_for_github_link)
 
-@router.message(F.text == "Відмінити", TeamGitHubStates.waiting_for_github_link)
+@router.message(F.text == "Скасувати", TeamGitHubStates.waiting_for_github_link)
 async def cancel_github_upload(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -204,7 +205,7 @@ async def cancel_github_upload(message: types.Message, state: FSMContext):
         return
 
     await state.clear()
-    await message.answer("Додавання GitHub-репозиторію скасовано.", reply_markup=get_team_keyboard(True))
+    await message.answer("Додавання GitHub-репозиторію скасовано.❌", reply_markup=get_team_keyboard(True))
 
 
 @router.message(TeamGitHubStates.waiting_for_github_link)
@@ -214,18 +215,18 @@ async def process_github_link(message: types.Message, state: FSMContext, db: Agn
     link = message.text.strip()
     user_id = message.from_user.id
     if not link.startswith("https://"):
-        await message.answer("Посилання має починатися з https://. Спробуй ще раз.")
+        await message.answer("Посилання має починатися з https://. Спробуй ще раз.⚠️")
         return
     users_collection = db.get_collection("users")
     user_doc = await users_collection.find_one({"chat_id": user_id})
     team_id = user_doc.get("team_id")
     if not team_id:
-        await message.answer("Упс! Ти не маєш команди.")
+        await message.answer("Упс! Ти не маєш команди.😶‍🌫️")
         await state.clear()
         return
     await update_team_github(db, team_id, link)
     await state.clear()
-    await message.answer("GitHub-репозиторій успішно збережено!", reply_markup=get_team_keyboard(True))
+    await message.answer("GitHub-репозиторій успішно збережено!✅", reply_markup=get_team_keyboard(True))
 
 @router.message(F.text == "Надіслати резюме")
 async def cmd_send_cv(message: types.Message, state: FSMContext, db: AgnosticDatabase):
@@ -240,12 +241,11 @@ async def cmd_send_cv(message: types.Message, state: FSMContext, db: AgnosticDat
     #     await message.answer("Час додавання резюме вже сплинув.")
     #     return
     await message.answer(
-        "Надішли мені свій PDF-файл із резюме (або будь-який інший формат, який підтримує TG). "
-        "Якщо передумав(-ла), відправ 'Відмінити'.", reply_markup=cancel_send_cv_keyboard()
+        "Надішли мені свій PDF-файл із резюме (або будь-який інший формат, який підтримує TG). 📄Якщо передумав(-ла), відправ 'Скасувати'.", reply_markup=cancel_send_cv_keyboard()
     )
     await state.set_state(TeamCVStates.waiting_for_cv)
 
-@router.message(F.text == "Відмінити", TeamCVStates.waiting_for_cv)
+@router.message(F.text == "Скасувати", TeamCVStates.waiting_for_cv)
 async def cancel_cv_upload(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -254,7 +254,7 @@ async def cancel_cv_upload(message: types.Message, state: FSMContext):
         return
 
     await state.clear()
-    await message.answer("Завантаження CV скасовано.", reply_markup=get_team_keyboard(True))
+    await message.answer("Завантаження CV скасовано.❌", reply_markup=get_team_keyboard(True))
 
 @router.message(TeamCVStates.waiting_for_cv, F.document)
 async def process_cv_document(message: types.Message, state: FSMContext, db: AgnosticDatabase):
@@ -268,15 +268,15 @@ async def process_cv_document(message: types.Message, state: FSMContext, db: Agn
         file_size=document.file_size,
     )
     await state.clear()
-    await message.answer("Резюме успішно отримано і збережено!", reply_markup=get_team_keyboard(True))
+    await message.answer("Резюме успішно отримано і збережено!✅", reply_markup=get_team_keyboard(True))
 
 @router.message(TeamCVStates.waiting_for_cv)
 async def fallback_cv_upload(message: types.Message):
-    await message.answer("Будь ласка, надішли файл із резюме або введи 'Відмінити', щоб скасувати.", reply_markup=cancel_send_cv_keyboard())
+    await message.answer("Будь ласка, надішли файл із резюме або введи 'Скасувати', щоб скасувати.", reply_markup=cancel_send_cv_keyboard())
 
 @router.message(TeamGitHubStates.waiting_for_github_link)
 async def fallback_github_upload(message: types.Message):
     await message.answer(
-        "Будь ласка, надішли правильне посилання на GitHub або введи 'Відмінити', щоб скасувати.",
+        "Будь ласка, надішли правильне посилання на GitHub або введи 'Скасувати', щоб скасувати.",
         reply_markup=cancel_send_github_keyboard()
     )

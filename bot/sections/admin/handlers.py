@@ -3,17 +3,30 @@ import zipfile
 
 from aiogram import Router, F, types
 from aiogram.fsm.context import FSMContext
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton, FSInputFile
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import (
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+    FSInputFile,
+    Message,
+    CallbackQuery
+)
 from bson import ObjectId
 from motor.core import AgnosticDatabase
 
 from bot.sections.admin.data import *
 from bot.sections.admin.services import *
-from bot.sections.admin.states import StageSelectionStates, BroadcastStates, TeamMessageState
+from bot.sections.admin.states import (
+    StageSelectionStates,
+    BroadcastStates,
+    TeamMessageState
+)
 from bot.sections.user.quiz_about_user.services import is_user_registered
-from bot.utils.keyboards.admin_keyboard import get_main_admin_keyboard, get_stage_selection_keyboard, \
-    get_broadcast_inline_keyboard, get_team_actions_inline_keyboard
+from bot.utils.keyboards.admin_keyboard import (
+    get_main_admin_keyboard,
+    get_stage_selection_keyboard,
+    get_broadcast_inline_keyboard,
+    get_team_actions_inline_keyboard
+)
 from bot.utils.keyboards.start_keyboard import get_start_keyboard
 from config_reader import ADMIN_PASSWORD
 
@@ -44,6 +57,7 @@ async def process_stage_selection(message: Message, state: FSMContext, db: Agnos
     stage_mapping = {
         "Початок реєстрації": "before_registration",
         "Реєстрація": "registration",
+        "Тестове" : "test",
         "Підготовка до івенту": "before_event",
         "Івент": "event",
         "Після івенту": "after_event"
@@ -65,33 +79,47 @@ async def process_stage_selection(message: Message, state: FSMContext, db: Agnos
     all_users = await get_all_users(db)
     teams_passed_test = await get_teams_by_test_status(db, True)
     teams_not_passed_test = await get_teams_by_test_status(db, False)
+    teams_approved_event = await get_teams_with_participation_status(db, True)
+    teams_not_approved_event = await get_teams_with_participation_status(db, False)
     team_ids_passed = [team["_id"] for team in teams_passed_test]
     team_ids_not_passed = [team["_id"] for team in teams_not_passed_test]
+    team_ids_approved_event = [team["_id"] for team in teams_approved_event]
+    team_ids_not_approved_event = [team["_id"] for team in teams_not_approved_event]
 
     if new_stage in ["before_registration", "registration"]:
-        message_text = "Ураа! Реєстрація розпочата!" if new_stage == "registration" else "Початок реєстрації!"
+        message_text = (
+            "Ураа! Реєстрація розпочата!"
+            if new_stage == "registration"
+            else "Ураа! Реєстрація розпочата!"
+        )
         for user in all_users:
             chat_id = user.get("chat_id")
-            print(f"Sending message to {chat_id}", user.get("username"))
             await is_user_registered(db, user.get("username"))
             if chat_id:
                 try:
-                    await message.bot.send_message(chat_id, message_text,
-                                                   reply_markup=get_start_keyboard(new_stage, True))
+                    await message.bot.send_message(
+                        chat_id,
+                        message_text,
+                        reply_markup=get_start_keyboard(new_stage, True)
+                    )
                 except Exception as e:
                     print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
 
-    elif new_stage == "before_event":
+    elif new_stage == "test":
         for team_id in team_ids_passed:
             recipients = await get_users_by_team_ids(db, [team_id])
             for recipient in recipients:
                 chat_id = recipient.get("chat_id")
                 if chat_id:
                     try:
-                        await message.bot.send_message(chat_id, """
-                        🚀 Привіт, майбутні чемпіони! Ви успішно виконали тестове завдання – це вже успіх! 🏆
-Ваша команда - потенційний переможець BEST::HACKath0n 2025! Тепер для вас відкриваються ексклюзивні деталі проєкту. 🔥""",
-                                                       reply_markup=get_start_keyboard(new_stage, True))
+                        await message.bot.send_message(
+                            chat_id,
+                            (
+                                "Вітаємо! Ваша команда допущена до тестового. "
+                                "Слідкуйте за оновленнями й успіхів!"
+                            ),
+                            reply_markup=get_start_keyboard(new_stage, True)
+                        )
                     except Exception as e:
                         print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
 
@@ -101,25 +129,70 @@ async def process_stage_selection(message: Message, state: FSMContext, db: Agnos
                 chat_id = recipient.get("chat_id")
                 if chat_id:
                     try:
-                        await message.bot.send_message(chat_id, "Не плачте! Ви не пройшли тестове завдання.",
-                                                       reply_markup=get_start_keyboard("registration", True))
+                        await message.bot.send_message(
+                            chat_id,
+                            "На жаль, ваша команда не допущена до тестового",
+                            reply_markup=get_start_keyboard("registration", True)
+                        )
                     except Exception as e:
                         print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
 
-    elif new_stage in ["event", "after_event"]:
-        message_text = "Івент розпочато!" if new_stage == "event" else "Івент завершено!"
-        for team_id in team_ids_passed:
+    elif new_stage == "before_event":
+        for team_id in team_ids_approved_event:
             recipients = await get_users_by_team_ids(db, [team_id])
             for recipient in recipients:
                 chat_id = recipient.get("chat_id")
                 if chat_id:
                     try:
-                        await message.bot.send_message(chat_id, message_text,
-                                                       reply_markup=get_start_keyboard(new_stage, True))
+                        await message.bot.send_message(
+                            chat_id,
+                            (
+                                "🚀 Привіт, майбутні чемпіони! Ви успішно виконали "
+                                "тестове завдання – це вже успіх! 🏆\n"
+                                "Ваша команда - потенційний переможець BEST::HACKath0n 2025! "
+                                "Тепер для вас відкриваються ексклюзивні деталі проєкту. 🔥"
+                            ),
+                            reply_markup=get_start_keyboard(new_stage, True)
+                        )
                     except Exception as e:
                         print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
 
-    await message.answer(STAGE_SWITCHED.format(chosen_stage), reply_markup=get_main_admin_keyboard())
+        for team_id in team_ids_not_approved_event:
+            recipients = await get_users_by_team_ids(db, [team_id])
+            for recipient in recipients:
+                chat_id = recipient.get("chat_id")
+                if chat_id:
+                    try:
+                        await message.bot.send_message(
+                            chat_id,
+                            "Не засмучуйтесь! Ви не пройшли тестове завдання.",
+                            reply_markup=get_start_keyboard("registration", True)
+                        )
+                    except Exception as e:
+                        print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
+
+    elif new_stage in ["event", "after_event"]:
+        message_text = (
+            "Івент розпочато! У вас 24 години" if new_stage == "event" else "Івент завершено!"
+        )
+        for team_id in team_ids_approved_event:
+            recipients = await get_users_by_team_ids(db, [team_id])
+            for recipient in recipients:
+                chat_id = recipient.get("chat_id")
+                if chat_id:
+                    try:
+                        await message.bot.send_message(
+                            chat_id,
+                            message_text,
+                            reply_markup=get_start_keyboard(new_stage, True)
+                        )
+                    except Exception as e:
+                        print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
+
+    await message.answer(
+        STAGE_SWITCHED.format(chosen_stage),
+        reply_markup=get_main_admin_keyboard()
+    )
     await state.clear()
 
 
@@ -145,18 +218,25 @@ async def handle_broadcast_category_callback(query: CallbackQuery, state: FSMCon
 async def handle_broadcast_message(message: Message, state: FSMContext, db: AgnosticDatabase):
     data = await state.get_data()
     target = data.get("target")
-
     recipients = []
+
     if target == "all":
         recipients = await get_all_users(db)
     elif target == "in_teams":
-        recipients = await db.get_collection("users").find({"team_id": {"$exists": True}}).to_list(length=None)
+        recipients = await db.get_collection("users").find(
+            {"team_id": {"$exists": True}}
+        ).to_list(length=None)
     elif target == "not_in_teams":
-        recipients = await db.get_collection("users").find({"team_id": {"$exists": False}}).to_list(length=None)
+        recipients = await db.get_collection("users").find(
+            {"team_id": {"$exists": False}}
+        ).to_list(length=None)
     elif target == "teams_less_than_3":
         teams = await list_teams(db)
-        team_ids = [team["_id"] for team in teams if
-                    (await db.get_collection("users").count_documents({"team_id": team["_id"]}) < 3)]
+        team_ids = [
+            team["_id"]
+            for team in teams
+            if (await db.get_collection("users").count_documents({"team_id": team["_id"]}) < 3)
+        ]
         recipients = await get_users_by_team_ids(db, team_ids)
     elif target == "in_teams_passed_test":
         teams = await get_teams_by_test_status(db, True)
@@ -166,10 +246,19 @@ async def handle_broadcast_message(message: Message, state: FSMContext, db: Agno
         teams = await get_teams_by_test_status(db, False)
         team_ids = [team["_id"] for team in teams]
         recipients = await get_users_by_team_ids(db, team_ids)
+    elif target == "in_teams_approved_event":
+        teams = await get_teams_with_participation_status(db, True)
+        team_ids = [team["_id"] for team in teams]
+        recipients = await get_users_by_team_ids(db, team_ids)
+    elif target == "in_teams_not_approved_event":
+        teams = await get_teams_with_participation_status(db, False)
+        team_ids = [team["_id"] for team in teams]
+        recipients = await get_users_by_team_ids(db, team_ids)
 
     if message.text:
         content_type = "text"
         content = message.text
+        caption = None
     elif message.photo:
         content_type = "photo"
         content = message.photo[-1].file_id
@@ -179,25 +268,45 @@ async def handle_broadcast_message(message: Message, state: FSMContext, db: Agno
         content = message.document.file_id
         caption = message.caption or ""
     else:
-        await message.answer("Непідтримуваний тип контенту. Будь ласка, надішліть текст, фото або документ.")
+        await message.answer(
+            "Непідтримуваний тип контенту. Будь ласка, надішліть текст, фото або документ.",
+            parse_mode="HTML"
+        )
         return
 
     for recipient in recipients:
         chat_id = recipient.get("chat_id")
         if not chat_id:
             continue
-
         try:
             if content_type == "text":
-                await message.bot.send_message(chat_id=chat_id, text=content)
+                await message.bot.send_message(
+                    chat_id=chat_id,
+                    text=content,
+                    parse_mode="HTML"
+                )
             elif content_type == "photo":
-                await message.bot.send_photo(chat_id=chat_id, photo=content, caption=caption)
+                await message.bot.send_photo(
+                    chat_id=chat_id,
+                    photo=content,
+                    caption=caption,
+                    parse_mode="HTML"
+                )
             elif content_type == "document":
-                await message.bot.send_document(chat_id=chat_id, document=content, caption=caption)
+                await message.bot.send_document(
+                    chat_id=chat_id,
+                    document=content,
+                    caption=caption,
+                    parse_mode="HTML"
+                )
         except Exception as e:
             print(f"Помилка надсилання {content_type} користувачу {chat_id}: {e}")
 
-    await message.answer(BROADCAST_COMPLETE.format(target), reply_markup=get_main_admin_keyboard())
+    await message.answer(
+        BROADCAST_COMPLETE.format(target),
+        reply_markup=get_main_admin_keyboard(),
+        parse_mode="HTML"
+    )
     await state.clear()
 
 
@@ -208,36 +317,19 @@ async def handle_list_teams(message: Message, db: AgnosticDatabase):
         await message.answer(NO_TEAMS_AVAILABLE, reply_markup=get_main_admin_keyboard())
         return
 
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=team.get('name', f"Команда {team['_id']}"),
-                              callback_data=f"team:select:{team['_id']}")]
-        for team in teams
-    ])
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=team.get("name", f"Команда {team['_id']}"),
+                    callback_data=f"team:select:{team['_id']}"
+                )
+            ]
+            for team in teams
+        ]
+    )
 
     await message.answer(TEAM_SELECTION_PROMPT, reply_markup=kb)
-
-
-@router.callback_query(F.data.startswith("team:select:"))
-async def handle_select_team_callback(query: CallbackQuery, db: AgnosticDatabase):
-    _, _, team_id = query.data.split(":")
-    print("Selected team:", team_id)
-
-    try:
-        team_object_id = ObjectId(team_id)
-    except Exception as e:
-        print(f"Invalid ObjectId format: {team_id}")
-        await query.answer(INVALID_TEAM_ID, show_alert=True)
-        return
-
-    team = await db.get_collection("teams").find_one({"_id": team_object_id})
-    print("Team info:", team)
-    if not team:
-        await query.answer(TEAM_NOT_FOUND, show_alert=True)
-        return
-
-    team_name = team.get('name', f"team_{team_id}")
-    await query.message.edit_text(TEAM_SELECTED.format(team_name),
-                                  reply_markup=get_team_actions_inline_keyboard(str(team_id)))
 
 
 @router.callback_query(F.data == "teams:return_list")
@@ -247,17 +339,44 @@ async def handle_return_to_team_list(query: CallbackQuery, db: AgnosticDatabase)
         await query.message.edit_text(NO_TEAMS_AVAILABLE, reply_markup=None)
         return
 
-    kb = InlineKeyboardMarkup(inline_keyboard=[
-        [InlineKeyboardButton(text=team.get('name', f"Команда {team['_id']}"),
-                              callback_data=f"team:select:{team['_id']}")]
-        for team in teams
-    ])
-
+    kb = InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text=team.get("name", f"Команда {team['_id']}"),
+                    callback_data=f"team:select:{team['_id']}"
+                )
+            ]
+            for team in teams
+        ]
+    )
     await query.message.edit_text(TEAM_SELECTION_PROMPT, reply_markup=kb)
 
 
+@router.callback_query(F.data.startswith("team:select:"))
+async def handle_select_team_callback(query: CallbackQuery, db: AgnosticDatabase):
+    _, _, team_id = query.data.split(":")
+    try:
+        team_object_id = ObjectId(team_id)
+    except Exception as e:
+        print(f"Invalid ObjectId format: {team_id}")
+        await query.answer(INVALID_TEAM_ID, show_alert=True)
+        return
+
+    team = await db.get_collection("teams").find_one({"_id": team_object_id})
+    if not team:
+        await query.answer(TEAM_NOT_FOUND, show_alert=True)
+        return
+
+    team_name = team.get("name", f"team_{team_id}")
+    await query.message.edit_text(
+        TEAM_SELECTED.format(team_name),
+        reply_markup=get_team_actions_inline_keyboard(str(team_id))
+    )
+
+
 @router.callback_query(F.data.startswith("team:"))
-async def handle_team_actions(query: CallbackQuery, db: AgnosticDatabase,state: FSMContext):
+async def handle_team_actions(query: CallbackQuery, db: AgnosticDatabase, state: FSMContext):
     parts = query.data.split(":")
     if len(parts) < 3:
         await query.answer(INVALID_DATA_FORMAT, show_alert=True)
@@ -286,21 +405,35 @@ async def handle_team_actions(query: CallbackQuery, db: AgnosticDatabase,state: 
         await query.answer()
 
     elif action == "tech":
-        team_members = await db.get_collection("users").find({"team_id": team_object_id}).to_list(length=None)
-        tech_info = [f"{member.get('name', 'Невідомо')}: {member.get('technologies', 'Технології не вказано')}" for
-                     member in team_members]
+        team_members = await db.get_collection("users").find(
+            {"team_id": team_object_id}
+        ).to_list(length=None)
+        tech_info = [
+            f"{member.get('name', 'Невідомо')}: "
+            f"{member.get('technologies', 'Технології не вказано')}"
+            for member in team_members
+        ]
         text = "\n".join(tech_info) if tech_info else "Технології не вказано."
         await query.message.answer(text)
         await query.answer()
 
     elif action == "cv":
-        team_members = await db.get_collection("users").find({"team_id": team_object_id}).to_list(length=None)
+        team = await db.get_collection("teams").find_one({"_id": team_object_id})
+        if not team:
+            await query.answer("Команду не знайдено.", show_alert=True)
+            return
+
+        team_name = team.get("name", "unknown_team")
+        team_members = await db.get_collection("users").find(
+            {"team_id": team_object_id}
+        ).to_list(length=None)
+
         if not team_members:
             await query.answer("Учасників не знайдено.", show_alert=True)
             return
 
-        zip_filename = f"team_{team_id}_cvs.zip"
-        with zipfile.ZipFile(zip_filename, 'w') as zipf:
+        zip_filename = f"{team_name}_cvs.zip"
+        with zipfile.ZipFile(zip_filename, "w") as zipf:
             for member in team_members:
                 resume = member.get("resume")
                 if resume:
@@ -313,63 +446,47 @@ async def handle_team_actions(query: CallbackQuery, db: AgnosticDatabase,state: 
                     os.remove(file_name)
 
         await query.message.answer_document(FSInputFile(zip_filename))
-        os.remove(zip_filename)  # Clean up the zip file
+        os.remove(zip_filename)
         await query.answer("CVs завантажено.")
 
-
     elif action == "approve_test":
-
         await approve_test_submission(db, team_object_id)
-
         await query.message.answer("Тестове завдання апрувнуто.")
-
         await query.answer()
 
-        # Notify team members
-
-        team_members = await db.get_collection("users").find({"team_id": team_object_id}).to_list(length=None)
-
-        for member in team_members:
-
-            chat_id = member.get("chat_id")
-
-            if chat_id:
-
-                try:
-
-                    await query.bot.send_message(chat_id, "Вам апрувнули тестове завдання!")
-
-                except Exception as e:
-
-                    print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
-
+        team_members = await db.get_collection("users").find(
+            {"team_id": team_object_id}
+        ).to_list(length=None)
+        # for member in team_members:
+        #     chat_id = member.get("chat_id")
+        #     if chat_id:
+        #         try:
+        #             await query.bot.send_message(
+        #                 chat_id,
+        #                 "Вітаю. Ваша команда допущена до тестового завдання!"
+        #             )
+        #         except Exception as e:
+        #             print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
 
     elif action == "approve_event":
-
         await approve_event_participation(db, team_object_id)
-
         await query.message.answer("Участь в івенті апрувнуто.")
-
         await query.answer()
 
-        # Notify team members
-
-        team_members = await db.get_collection("users").find({"team_id": team_object_id}).to_list(length=None)
-
-        for member in team_members:
-
-            chat_id = member.get("chat_id")
-
-            if chat_id:
-
-                try:
-
-                    await query.bot.send_message(chat_id, "Вам апрувнули участь на івенті!")
-
-                except Exception as e:
-
-                    print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
-
+        team_members = await db.get_collection("users").find(
+            {"team_id": team_object_id}
+        ).to_list(length=None)
+        # for member in team_members:
+        #     chat_id = member.get("chat_id")
+        #     if chat_id:
+        #         try:
+        #             await query.bot.send_message(
+        #                 chat_id,
+        #                 "Вітаю.Ви пройшли тестове і допущені до івенту.",
+        #                 parse_mode="HTML"
+        #             )
+        #         except Exception as e:
+        #             print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
 
     elif action == "delete":
         await delete_team(db, team_object_id)
@@ -381,43 +498,44 @@ async def handle_team_actions(query: CallbackQuery, db: AgnosticDatabase,state: 
             await query.message.answer(NO_TEAMS_AVAILABLE)
             return
 
-        kb = InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text=team.get('name', f"Команда {team['_id']}"),
-                                  callback_data=f"team:select:{str(team['_id'])}")]
-            for team in teams
-        ])
+        kb = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text=team.get("name", f"Команда {team['_id']}"),
+                        callback_data=f"team:select:{str(team['_id'])}"
+                    )
+                ]
+                for team in teams
+            ]
+        )
         await query.message.answer(TEAM_SELECTION_PROMPT, reply_markup=kb)
 
     if action == "message":
-        # Зберігаємо team_id у FSM, щоб знати, кому надсилати
         await state.update_data({"team_id": team_id})
-        # Переводимо користувача в стан написання повідомлення
         await state.set_state(TeamMessageState.waiting_for_message)
-        # Пропонуємо адмінам ввести текст
-        await query.message.answer("Введіть текст повідомлення, яке хочете надіслати цій команді:")
+        await query.message.answer(
+            "Введіть текст повідомлення, яке хочете надіслати цій команді:"
+        )
         await query.answer()
         return
-
     else:
         await query.answer(UNKNOWN_ACTION, show_alert=True)
+
 
 @router.message(TeamMessageState.waiting_for_message)
 async def handle_team_message(message: Message, state: FSMContext, db: AgnosticDatabase):
     data = await state.get_data()
     team_id = data.get("team_id")
-
     if not team_id:
         await message.answer("Не вдалося визначити команду. Спробуйте ще раз.")
         await state.clear()
         return
 
-    content_type = None
-    content = None
-    caption = None
-
     if message.text:
         content_type = "text"
         content = message.text
+        caption = None
     elif message.photo:
         content_type = "photo"
         content = message.photo[-1].file_id
@@ -437,23 +555,69 @@ async def handle_team_message(message: Message, state: FSMContext, db: AgnosticD
         await state.clear()
         return
 
-    team_members = await db.get_collection("users").find({"team_id": team_object_id}).to_list(length=None)
+    team_members = await db.get_collection("users").find(
+        {"team_id": team_object_id}
+    ).to_list(length=None)
 
     for member in team_members:
         chat_id = member.get("chat_id")
         if not chat_id:
             continue
-
         try:
             if content_type == "text":
-                await message.bot.send_message(chat_id=chat_id, text=content)
+                await message.bot.send_message(
+                    chat_id=chat_id,
+                    text=content,
+                    parse_mode="HTML"
+                )
             elif content_type == "photo":
-                await message.bot.send_photo(chat_id=chat_id, photo=content, caption=caption)
+                await message.bot.send_photo(
+                    chat_id=chat_id,
+                    photo=content,
+                    caption=caption,
+                    parse_mode="HTML"
+                )
             elif content_type == "document":
-                await message.bot.send_document(chat_id=chat_id, document=content, caption=caption)
+                await message.bot.send_document(
+                    chat_id=chat_id,
+                    document=content,
+                    caption=caption,
+                    parse_mode="HTML"
+                )
         except Exception as e:
             print(f"Помилка надсилання {content_type} користувачу {chat_id}: {e}")
 
     await message.answer("Повідомлення надіслано всім учасникам команди.")
     await state.clear()
 
+
+@router.message(F.text == "Завантажити всі CV")
+async def handle_download_all_cvs(message: Message, db: AgnosticDatabase):
+    teams = await db.get_collection("teams").find({"participation_status": True}).to_list(length=None)
+    if not teams:
+        await message.answer("Немає команд з підтвердженим статусом участі в івенті.")
+        return
+
+    main_zip_filename = "all_teams_cvs.zip"
+    with zipfile.ZipFile(main_zip_filename, "w") as main_zip:
+        for team in teams:
+            team_name = team.get("name", f"team_{team['_id']}")
+            team_members = await db.get_collection("users").find(
+                {"team_id": team["_id"]}
+            ).to_list(length=None)
+
+            for member in team_members:
+                resume = member.get("resume")
+                if resume:
+                    file_id = resume["file_id"]
+                    file_name = resume["file_name"]
+                    file = await message.bot.get_file(file_id)
+                    file_path = file.file_path
+                    await message.bot.download_file(file_path, file_name)
+                    zip_path = f"{team_name}/{file_name}"
+                    main_zip.write(file_name, zip_path)
+                    os.remove(file_name)
+
+    await message.answer_document(FSInputFile(main_zip_filename))
+    os.remove(main_zip_filename)
+    await message.answer("Усі CV завантажено.")

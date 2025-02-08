@@ -17,7 +17,7 @@ async def about_best(message: Message):
     if is_duplicate_request(user_id, message_text):
         return
 
-    await message.answer_photo(photo=photo, caption=about_text, reply_markup=about_keyboard)
+    await message.answer_photo(photo=photo, caption=about_text, reply_markup=about_keyboard, parse_mode="HTML")
 
 @router.message(F.text == "Більше про HACKath0n")
 async def about_hackathon(message: Message):
@@ -27,4 +27,4 @@ async def about_hackathon(message: Message):
 
     if is_duplicate_request(user_id, message_text):
         return
-    await message.answer_photo(photo=photo, caption=hackathon_text, reply_markup=hackathon_keyboard)
+    await message.answer_photo(photo=photo, caption=hackathon_text, reply_markup=hackathon_keyboard, parse_mode="HTML")
