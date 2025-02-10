@@ -58,7 +58,7 @@ async def process_stage_selection(message: Message, state: FSMContext, db: Agnos
     stage_mapping = {
         "Початок реєстрації": "before_registration",
         "Реєстрація": "registration",
-        "Тестове" : "test",
+        "Тестове": "test",
         "Підготовка до івенту": "before_event",
         "Івент": "event",
         "Після івенту": "after_event"
@@ -78,8 +78,6 @@ async def process_stage_selection(message: Message, state: FSMContext, db: Agnos
     await update_stage(db, new_stage)
 
     all_users = await get_all_users(db)
-
-
 
     teams_approved_event = await get_teams_with_participation_status(db, True)
     teams_not_approved_event = await get_teams_with_participation_status(db, False)
@@ -417,26 +415,22 @@ async def handle_team_actions(query: CallbackQuery, db: AgnosticDatabase, state:
         text = members_info or "Учасників не знайдено."
         await query.message.answer(text)
         await query.answer()
-
     elif action == "repo":
         repo_link = await get_team_repo_link(db, team_object_id)
         text = repo_link or "Посилання на репозиторій не вказано."
         await query.message.answer(text)
         await query.answer()
-
     elif action == "tech":
         team_members = await db.get_collection("users").find(
             {"team_id": team_object_id}
         ).to_list(length=None)
         tech_info = [
-            f"{member.get('name', 'Невідомо')}: "
-            f"{member.get('technologies', 'Технології не вказано')}"
+            f"{member.get('name', 'Невідомо')}: {member.get('technologies', 'Технології не вказано')}"
             for member in team_members
         ]
         text = "\n".join(tech_info) if tech_info else "Технології не вказано."
         await query.message.answer(text)
         await query.answer()
-
     elif action == "cv":
         team = await db.get_collection("teams").find_one({"_id": team_object_id})
         if not team:
@@ -468,56 +462,22 @@ async def handle_team_actions(query: CallbackQuery, db: AgnosticDatabase, state:
         await query.message.answer_document(FSInputFile(zip_filename))
         os.remove(zip_filename)
         await query.answer("CVs завантажено.")
-
     elif action == "approve_test":
         await approve_test_submission(db, team_object_id)
         await query.message.answer("Тестове завдання апрувнуто.")
         await query.answer()
-
-        team_members = await db.get_collection("users").find(
-            {"team_id": team_object_id}
-        ).to_list(length=None)
-        # for member in team_members:
-        #     chat_id = member.get("chat_id")
-        #     if chat_id:
-        #         try:
-        #             await query.bot.send_message(
-        #                 chat_id,
-        #                 "Вітаю. Ваша команда допущена до тестового завдання!"
-        #             )
-        #         except Exception as e:
-        #             print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
-
     elif action == "approve_event":
         await approve_event_participation(db, team_object_id)
         await query.message.answer("Участь в івенті апрувнуто.")
         await query.answer()
-
-        team_members = await db.get_collection("users").find(
-            {"team_id": team_object_id}
-        ).to_list(length=None)
-        # for member in team_members:
-        #     chat_id = member.get("chat_id")
-        #     if chat_id:
-        #         try:
-        #             await query.bot.send_message(
-        #                 chat_id,
-        #                 "Вітаю.Ви пройшли тестове і допущені до івенту.",
-        #                 parse_mode="HTML"
-        #             )
-        #         except Exception as e:
-        #             print(f"Помилка надсилання повідомлення користувачу {chat_id}: {e}")
-
     elif action == "delete":
         await delete_team(db, team_object_id)
         await query.message.answer("Команду видалено.")
         await query.answer()
-
         teams = await list_teams(db)
         if not teams:
             await query.message.answer(NO_TEAMS_AVAILABLE)
             return
-
         kb = InlineKeyboardMarkup(
             inline_keyboard=[
                 [
@@ -530,13 +490,10 @@ async def handle_team_actions(query: CallbackQuery, db: AgnosticDatabase, state:
             ]
         )
         await query.message.answer(TEAM_SELECTION_PROMPT, reply_markup=kb)
-
     if action == "message":
         await state.update_data({"team_id": team_id})
         await state.set_state(TeamMessageState.waiting_for_message)
-        await query.message.answer(
-            "Введіть текст повідомлення, яке хочете надіслати цій команді:"
-        )
+        await query.message.answer("Введіть текст повідомлення, яке хочете надіслати цій команді:")
         await query.answer()
         return
     else:
@@ -642,6 +599,7 @@ async def handle_download_all_cvs(message: Message, db: AgnosticDatabase):
     os.remove(main_zip_filename)
     await message.answer("Усі CV завантажено.")
 
+
 @router.message(F.text == "Юзери без CV")
 async def handle_users_without_cv(message: Message, db: AgnosticDatabase):
     users_without_cv = await db.get_collection("users").find({
@@ -682,4 +640,3 @@ async def handle_users_without_cv(message: Message, db: AgnosticDatabase):
 
     final_text = "\n".join(lines)
     await message.answer(final_text, parse_mode="HTML")
-

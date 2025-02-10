@@ -82,11 +82,14 @@ def get_broadcast_inline_keyboard() -> InlineKeyboardMarkup:
                                      callback_data="broadcast:in_teams_not_passed_test"),
             ],
             [
-                InlineKeyboardButton(text="У командах і допущені до івент", callback_data="broadcast:in_teams_approved_event"),
+                InlineKeyboardButton(text="У командах і допущені до івент",
+                                     callback_data="broadcast:in_teams_approved_event"),
                 InlineKeyboardButton(text="У командах і не допущені до івенту",
                                      callback_data="broadcast:in_teams_not_approved_event"),
             ],
             [
+
+                InlineKeyboardButton(text="Всім без CV", callback_data="broadcast:users_without_cv"),
                 InlineKeyboardButton(text="Скасувати", callback_data="broadcast:cancel")
             ]
         ]

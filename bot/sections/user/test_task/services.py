@@ -2,11 +2,6 @@ from motor.core import AgnosticDatabase
 
 
 async def get_bot_stage(db: AgnosticDatabase):
-    """
-    Отримує поточний стан бота з бази даних.
-    :param db: об'єкт MongoDB
-    :return: документ із колекції bot_state або None
-    """
     collection = db.get_collection("bot_stage")
     bot_stage = await collection.find_one({})
     return bot_stage

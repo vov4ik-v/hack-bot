@@ -179,9 +179,7 @@ def get_start_keyboard(
             )
 
     elif stage == "event":
-        # Якщо немає participation_status
         if not event_approved:
-            # Якщо тест пройдено, але івент не апрувнули => показуємо клавіатуру тесту
             if test_approved:
                 return ReplyKeyboardMarkup(
                     keyboard=[
@@ -197,7 +195,6 @@ def get_start_keyboard(
                     resize_keyboard=True
                 )
             else:
-                # Якщо і тест не пройдено => реєстрація
                 if is_registered:
                     return ReplyKeyboardMarkup(
                         keyboard=[
@@ -226,7 +223,6 @@ def get_start_keyboard(
                         resize_keyboard=True
                     )
         else:
-            # Якщо participation_status == True => показуємо "event"
             return ReplyKeyboardMarkup(
                 keyboard=[
                     [
@@ -245,9 +241,7 @@ def get_start_keyboard(
             )
 
     elif stage == "after_event":
-        # Якщо участь в івенті не апрувнута
         if not event_approved:
-            # Якщо тест пройшли
             if test_approved:
                 return ReplyKeyboardMarkup(
                     keyboard=[
@@ -263,7 +257,6 @@ def get_start_keyboard(
                     resize_keyboard=True
                 )
             else:
-                # Якщо тест теж не пройдено => реєстрація
                 if is_registered:
                     return ReplyKeyboardMarkup(
                         keyboard=[
@@ -292,7 +285,6 @@ def get_start_keyboard(
                         resize_keyboard=True
                     )
         else:
-            # Якщо participation_status == True => показуємо "after_event"
             return ReplyKeyboardMarkup(
                 keyboard=[
                     [
@@ -306,7 +298,6 @@ def get_start_keyboard(
                 resize_keyboard=True
             )
 
-    # Дефолтна клавіатура (на випадок невідомої стадії)
     return ReplyKeyboardMarkup(
         keyboard=[
             [KeyboardButton(text="Головне меню")]
