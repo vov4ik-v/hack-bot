@@ -13,7 +13,7 @@ def get_admin_panel_keyboard() -> ReplyKeyboardMarkup:
                 KeyboardButton(text="Командна панель")
             ],
             [
-                KeyboardButton(text="Головне меню")
+                KeyboardButton(text="Головне меню🏠")
             ]
         ],
         resize_keyboard=True

@@ -19,7 +19,7 @@ from bot.sections.user.my_team.data import photo_path_team_image, text_find_team
 
 router = Router()
 
-@router.message(F.text == "Моя Команда", BotStageFilter("before_registration"))
+@router.message(F.text == "Моя Команда👥", BotStageFilter("before_registration"))
 async def handle_team_before_registration(message: types.Message):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -29,7 +29,7 @@ async def handle_team_before_registration(message: types.Message):
     photo = FSInputFile(photo_path_team_image)
     await message.answer_photo(photo=photo, caption="Дочекайся початку реєстрації, щоб створити або долучитись до команди💻")
 
-@router.message(F.text == "Моя Команда", BotStageFilter(["registration","test", "before_event","event"]))
+@router.message(F.text == "Моя Команда👥", BotStageFilter(["registration","test", "before_event","event"]))
 async def handle_team_registration(message: types.Message, db: AgnosticDatabase):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -39,7 +39,7 @@ async def handle_team_registration(message: types.Message, db: AgnosticDatabase)
 
     await send_team_info(message, db, user_id)
 
-@router.message(F.text == "Знайти команду")
+@router.message(F.text == "Знайти команду🔍")
 async def handle_find_team(message: types.Message):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -51,7 +51,7 @@ async def handle_find_team(message: types.Message):
     reply_markup = handle_find_team_keyboard()
     await message.answer_photo(photo=photo, caption=text_find_team, reply_markup=reply_markup, parse_mode="HTML")
 
-@router.message(F.text == "Головне меню")
+@router.message(F.text == "Головне меню🏠")
 async def handle_back(message: types.Message, db):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -168,7 +168,7 @@ async def process_join_team_password(message: types.Message, state: FSMContext, 
     await send_team_info(message, db, user_id)
 
 
-@router.message(F.text == "Покинути команду")
+@router.message(F.text == "Покинути команду🚪")
 async def cmd_leave_team(message: types.Message, db: AgnosticDatabase):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -190,7 +190,7 @@ async def cmd_leave_team(message: types.Message, db: AgnosticDatabase):
     await unset_user_team(db, user_id)
     await message.answer("Ти покинув(-ла) команду.", reply_markup=get_start_keyboard(stage, is_registered, test_approved, event_approved))
 
-@router.message(F.text == "Надіслати GitHub-репозиторій")
+@router.message(F.text == "Надіслати GitHub-репозиторій📂")
 async def cmd_send_github(message: types.Message, state: FSMContext, db: AgnosticDatabase):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -212,7 +212,7 @@ async def cmd_send_github(message: types.Message, state: FSMContext, db: Agnosti
     )
     await state.set_state(TeamGitHubStates.waiting_for_github_link)
 
-@router.message(F.text == "Скасувати", TeamGitHubStates.waiting_for_github_link)
+@router.message(F.text == "Скасувати❌", TeamGitHubStates.waiting_for_github_link)
 async def cancel_github_upload(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -244,7 +244,7 @@ async def process_github_link(message: types.Message, state: FSMContext, db: Agn
     await state.clear()
     await message.answer("GitHub-репозиторій успішно збережено!✅", reply_markup=get_team_keyboard(True))
 
-@router.message(F.text == "Надіслати резюме")
+@router.message(F.text == "Надіслати резюме📄")
 async def cmd_send_cv(message: types.Message, state: FSMContext, db: AgnosticDatabase):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -261,7 +261,7 @@ async def cmd_send_cv(message: types.Message, state: FSMContext, db: AgnosticDat
     )
     await state.set_state(TeamCVStates.waiting_for_cv)
 
-@router.message(F.text == "Скасувати", TeamCVStates.waiting_for_cv)
+@router.message(F.text == "Скасувати❌", TeamCVStates.waiting_for_cv)
 async def cancel_cv_upload(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
     message_text = message.text or ""

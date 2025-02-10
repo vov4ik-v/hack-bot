@@ -7,7 +7,7 @@ from bot.utils.middleware.Time import is_duplicate_request
 
 router = Router()
 
-@router.message(F.text == "Більше про BEST")
+@router.message(F.text == "Більше про BEST🚀")
 async def about_best(message: Message):
     photo = FSInputFile(photo_path_about_hack)
 
@@ -19,7 +19,7 @@ async def about_best(message: Message):
 
     await message.answer_photo(photo=photo, caption=about_text, reply_markup=about_keyboard, parse_mode="HTML")
 
-@router.message(F.text == "Більше про HACKath0n")
+@router.message(F.text == "Більше про HACKath0n👾")
 async def about_hackathon(message: Message):
     photo = FSInputFile(photo_path_about_hack)
     user_id = message.from_user.id

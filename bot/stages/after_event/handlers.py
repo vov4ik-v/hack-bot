@@ -10,7 +10,7 @@ router = Router()
 
 
 
-@router.message(F.text == "Фідбек форма")
+@router.message(F.text == "Фідбек форма✍🏻")
 async def handle_feedback_form(message: types.Message):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -21,7 +21,7 @@ async def handle_feedback_form(message: types.Message):
     reply_markup = get_feedback_form_keyboard(feedback_form_link)
     await message.answer(feedback_form_caption, reply_markup=reply_markup, parse_mode="HTML")
 
-@router.message(F.text == "Переможці")
+@router.message(F.text == "Переможці🏆")
 async def handle_winners(message: types.Message):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -35,7 +35,7 @@ async def handle_winners(message: types.Message):
     except FileNotFoundError:
         await message.answer(winners_caption, parse_mode="HTML")
 
-@router.message(F.text == "Нас Підтримували")
+@router.message(F.text == "Нас Підтримували🤍")
 async def handle_supporters(message: types.Message):
     user_id = message.from_user.id
     message_text = message.text or ""

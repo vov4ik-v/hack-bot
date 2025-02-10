@@ -39,7 +39,7 @@ async def registration(message: types.Message, state: FSMContext, db: AgnosticDa
         return
 
     if await is_user_registered(db, username):
-        user_record = await db.get_collection("users").find_one({"contact.username": username})
+        user_record = await db.get_collection("users").find_one({"contact.chat_id": chat_id})
         if user_record and user_record.get("eligible") is False:
             await message.answer("На жаль, ці змагання лише для студентів. Дякуємо за інтерес 💚")
             return

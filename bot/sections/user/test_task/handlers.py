@@ -8,7 +8,7 @@ from bot.utils.middleware.Time import is_duplicate_request
 
 router = Router()
 
-@router.message(F.text == "Тестове Завдання",  BotStageFilter(["test", "before_event"]))
+@router.message(F.text == "Тестове Завдання📝",  BotStageFilter(["test", "before_event"]))
 async def test_task(message: types.Message, db: AgnosticDatabase):
     user_id = message.from_user.id
     message_text = message.text or ""

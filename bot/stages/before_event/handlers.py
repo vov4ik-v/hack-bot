@@ -12,7 +12,7 @@ from bot.utils.middleware.Time import is_duplicate_request
 
 router = Router()
 
-@router.message(F.text == "Де відбуватиметься івент", BotStageFilter("before_event"))
+@router.message(F.text == "Де відбуватиметься івент📍", BotStageFilter("before_event"))
 async def handle_event_location(message: types.Message):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -23,7 +23,7 @@ async def handle_event_location(message: types.Message):
     photo = FSInputFile(event_location_photo)
     await message.answer_photo(photo=photo, caption=event_location_caption, parse_mode="HTML")
 
-@router.message(F.text == "Чат для учасників", BotStageFilter("before_event"))
+@router.message(F.text == "Чат для учасників💬", BotStageFilter("before_event"))
 async def handle_participants_chat(message: types.Message):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -35,7 +35,7 @@ async def handle_participants_chat(message: types.Message):
     reply_markup = get_participants_chat_keyboard(participants_chat_link)
     await message.answer_photo(photo=photo, caption=participants_chat_caption, reply_markup=reply_markup, parse_mode="HTML")
 
-@router.message(F.text == "Загальна інформація", BotStageFilter("before_event"))
+@router.message(F.text == "Загальна інформація ℹ️", BotStageFilter("before_event"))
 async def handle_general_info(message: types.Message):
     user_id = message.from_user.id
     message_text = message.text or ""

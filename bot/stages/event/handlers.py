@@ -13,7 +13,7 @@ from bot.utils.middleware.Time import is_duplicate_request
 
 router = Router()
 
-@router.message(F.text == "Правила поведінки на хакатоні", BotStageFilter("event"))
+@router.message(F.text == "Правила поведінки на хакатоні📜", BotStageFilter("event"))
 async def handle_event_rules(message: types.Message):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -24,7 +24,7 @@ async def handle_event_rules(message: types.Message):
     photo = FSInputFile(event_rules_photo)
     await message.answer_photo(photo=photo, caption=event_rules_caption, parse_mode="HTML")
 
-@router.message(F.text == "Основне Завдання", BotStageFilter("event"))
+@router.message(F.text == "Основне Завдання🎯", BotStageFilter("event"))
 async def handle_main_task(message: types.Message):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -35,7 +35,7 @@ async def handle_main_task(message: types.Message):
     photo = FSInputFile(main_task_photo)
     await message.answer_photo(photo=photo, caption=main_task_caption, parse_mode="HTML")
 
-@router.message(F.text == "Розклад", BotStageFilter("event"))
+@router.message(F.text == "Розклад🕒", BotStageFilter("event"))
 async def handle_schedule(message: types.Message):
     user_id = message.from_user.id
     message_text = message.text or ""
@@ -47,7 +47,7 @@ async def handle_schedule(message: types.Message):
     reply_markup = get_schedule_keyboard(schedule_link)
     await message.answer_photo(photo=photo, caption=schedule_caption, reply_markup=reply_markup, parse_mode="HTML")
 
-@router.message(F.text == "Команді потрібна допомога", BotStageFilter("event"))
+@router.message(F.text == "Команді потрібна допомога🆘", BotStageFilter("event"))
 async def handle_team_help(message: types.Message):
     user_id = message.from_user.id
     message_text = message.text or ""
