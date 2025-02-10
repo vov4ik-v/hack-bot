@@ -1,5 +1,5 @@
 photo_path_register = "asset/hack_register_photo.jpg"
-photo_path_about_hack = "asset/hack_about_photo.jpg"
+photo_path_about_hack = "asset/hack_about_photo.png"
 
 about_text = (
     """<b>BEST Lviv</b> – це львівський осередок міжнародної студентської організації <b>BEST</b> (Board of European Students of Technology).\n

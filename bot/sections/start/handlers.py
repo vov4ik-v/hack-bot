@@ -9,9 +9,9 @@ from bot.utils.keyboards.start_keyboard import get_start_keyboard, get_user_team
 from bot.utils.middleware.Time import is_duplicate_request
 
 router = Router()
-photo_path_welcome = "asset/hack_start_photo.jpg"
+photo_path_welcome = "asset/hack_start_photo.png"
 photo_path_register = "asset/hack_register_photo.jpg"
-photo_path_about_hack = "asset/hack_about_photo.jpg"
+photo_path_about_hack = "asset/hack_about_photo.png"
 
 @router.message(CommandStart())
 async def welcome_user(message: Message):

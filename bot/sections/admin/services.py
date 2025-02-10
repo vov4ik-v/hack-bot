@@ -5,6 +5,10 @@ async def get_current_stage(db: AgnosticDatabase):
     doc = await db.get_collection("bot_stage").find_one({})
     return doc.get("stage", "before_registration") if doc else "before_registration"
 
+async def is_user_admin(db: AgnosticDatabase, chat_id: int) -> bool:
+    user = await db.get_collection("users").find_one({"chat_id": chat_id})
+    return user and user.get("is_admin", False)
+
 
 async def update_stage(db: AgnosticDatabase, new_stage: str):
     await db.get_collection("bot_stage").update_one({}, {"$set": {"stage": new_stage}}, upsert=True)

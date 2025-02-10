@@ -107,7 +107,7 @@ async def get_team_by_id(db: AgnosticDatabase, team_id: ObjectId) -> dict:
 
 async def send_team_info(message: Message, db: AgnosticDatabase, user_id: int):
     user_doc = await db.get_collection("users").find_one({"chat_id": user_id})
-    photo_path = "asset/team_image.jpg"
+    photo_path = "asset/team_image.png"
     test_approved, event_approved = await get_user_team_info(db, message.from_user.id)
     stage = await get_current_stage(db)
     username = message.from_user.username
@@ -164,7 +164,7 @@ async def send_team_info(message: Message, db: AgnosticDatabase, user_id: int):
         f"<b>Команда допущена до тестового</b> - {test_task_display}\n"
         f"<b>Команда бере участь в хакатоні</b> - {participation_display}"
     )
-    team_photo_path = "asset/team_image.jpg"
+    team_photo_path = "asset/team_image.png"
     try:
         photo = FSInputFile(team_photo_path)
         await message.answer_photo(photo=photo, caption=response_text, parse_mode="HTML",

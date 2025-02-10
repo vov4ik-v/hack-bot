@@ -40,6 +40,8 @@ async def open_admin_panel(message: types.Message):
 
 @router.message(F.text == "Вийти з адмінки")
 async def handle_admin_exit(message: Message, db: AgnosticDatabase):
+    if not await is_user_admin(db, message.from_user.id):
+        return
     is_registered = await is_user_registered(db, message.from_user.username)
     test_approved, event_approved = await get_user_team_info(db, message.from_user.id)
     stage = await get_current_stage(db)
@@ -47,7 +49,9 @@ async def handle_admin_exit(message: Message, db: AgnosticDatabase):
 
 
 @router.message(F.text == "Переключити секцію")
-async def handle_toggle_section(message: Message, state: FSMContext):
+async def handle_toggle_section(message: Message, state: FSMContext, db: AgnosticDatabase):
+    if not await is_user_admin(db, message.from_user.id):
+        return
     await message.answer(STAGE_SELECTION_PROMPT, reply_markup=get_stage_selection_keyboard())
     await state.set_state(StageSelectionStates.waiting_for_stage)
 
@@ -215,7 +219,9 @@ async def process_stage_selection(message: Message, state: FSMContext, db: Agnos
 
 
 @router.message(F.text == "Розсилка")
-async def handle_broadcast_menu(message: Message):
+async def handle_broadcast_menu(message: Message, db: AgnosticDatabase):
+    if not await is_user_admin(db, message.from_user.id):
+        return
     await message.answer(BROADCAST_PROMPT, reply_markup=get_broadcast_inline_keyboard())
 
 
@@ -272,6 +278,14 @@ async def handle_broadcast_message(message: Message, state: FSMContext, db: Agno
         teams = await get_teams_with_participation_status(db, False)
         team_ids = [team["_id"] for team in teams]
         recipients = await get_users_by_team_ids(db, team_ids)
+    elif target == "users_without_cv":
+        recipients = await db.get_collection("users").find({
+            "$or": [
+                {"resume": {"$exists": False}},
+                {"resume": None}
+            ]
+        }).to_list(length=None)
+
 
     if message.text:
         content_type = "text"
@@ -330,6 +344,8 @@ async def handle_broadcast_message(message: Message, state: FSMContext, db: Agno
 
 @router.message(F.text == "Робота з командами")
 async def handle_list_teams(message: Message, db: AgnosticDatabase):
+    if not await is_user_admin(db, message.from_user.id):
+        return
     teams = await list_teams(db)
     if not teams:
         await message.answer(NO_TEAMS_AVAILABLE, reply_markup=get_main_admin_keyboard())
@@ -570,6 +586,8 @@ async def handle_team_message(message: Message, state: FSMContext, db: AgnosticD
 
 @router.message(F.text == "Завантажити всі CV")
 async def handle_download_all_cvs(message: Message, db: AgnosticDatabase):
+    if not await is_user_admin(db, message.from_user.id):
+        return
     teams = await db.get_collection("teams").find({"participation_status": True}).to_list(length=None)
     if not teams:
         await message.answer("Немає команд з підтвердженим статусом участі в івенті.")
@@ -602,6 +620,8 @@ async def handle_download_all_cvs(message: Message, db: AgnosticDatabase):
 
 @router.message(F.text == "Юзери без CV")
 async def handle_users_without_cv(message: Message, db: AgnosticDatabase):
+    if not await is_user_admin(db, message.from_user.id):
+        return
     users_without_cv = await db.get_collection("users").find({
         "$or": [
             {"resume": {"$exists": False}},

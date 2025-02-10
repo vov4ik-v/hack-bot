@@ -7,12 +7,12 @@ def get_team_keyboard(is_in_team: bool) -> ReplyKeyboardMarkup:
     if is_in_team:
         keyboard = [
             [
-                KeyboardButton(text="Надіслати GitHub-репозиторій"),
-                KeyboardButton(text="Надіслати резюме"),
+                KeyboardButton(text="Надіслати GitHub-репозиторій📂"),
+                KeyboardButton(text="Надіслати резюме📄"),
             ],
             [
-                KeyboardButton(text="Покинути команду"),
-                KeyboardButton(text="Головне меню"),
+                KeyboardButton(text="Покинути команду🚪"),
+                KeyboardButton(text="Головне меню🏠"),
             ]
         ]
 
@@ -21,14 +21,14 @@ def get_team_keyboard(is_in_team: bool) -> ReplyKeyboardMarkup:
 
 def cancel_send_cv_keyboard() -> ReplyKeyboardMarkup:
     keyboard = [
-        [KeyboardButton(text="Скасувати")]
+        [KeyboardButton(text="Скасувати❌")]
     ]
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True, one_time_keyboard=True)
 
 def cancel_send_github_keyboard():
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="Скасувати")]
+            [KeyboardButton(text="Скасувати❌")]
         ],
         resize_keyboard=True,
         one_time_keyboard=True,

@@ -67,30 +67,20 @@ def get_team_actions_inline_keyboard(team_id: str) -> InlineKeyboardMarkup:
 def get_broadcast_inline_keyboard() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
-            [
-                InlineKeyboardButton(text="Усі користувачі", callback_data="broadcast:all"),
-                InlineKeyboardButton(text="Усі в командах", callback_data="broadcast:in_teams"),
-            ],
-            [
-                InlineKeyboardButton(text="Усі не в командах", callback_data="broadcast:not_in_teams"),
-                InlineKeyboardButton(text="У командах менше 3 людей", callback_data="broadcast:teams_less_than_3"),
-            ],
-            [
-                InlineKeyboardButton(text="У командах і допущені тестове",
-                                     callback_data="broadcast:in_teams_passed_test"),
-                InlineKeyboardButton(text="У командах і не допущені до тестового",
-                                     callback_data="broadcast:in_teams_not_passed_test"),
-            ],
-            [
-                InlineKeyboardButton(text="У командах і допущені до івент",
-                                     callback_data="broadcast:in_teams_approved_event"),
-                InlineKeyboardButton(text="У командах і не допущені до івенту",
-                                     callback_data="broadcast:in_teams_not_approved_event"),
-            ],
-            [
-
-                InlineKeyboardButton(text="Всім без CV", callback_data="broadcast:users_without_cv"),
-                InlineKeyboardButton(text="Скасувати", callback_data="broadcast:cancel")
-            ]
+            [InlineKeyboardButton(text="Усі користувачі", callback_data="broadcast:all")],
+            [InlineKeyboardButton(text="Усі в командах", callback_data="broadcast:in_teams")],
+            [InlineKeyboardButton(text="Усі не в командах", callback_data="broadcast:not_in_teams")],
+            [InlineKeyboardButton(text="У командах менше 3 людей", callback_data="broadcast:teams_less_than_3")],
+            [InlineKeyboardButton(text="У командах і допущені тестове",
+                                  callback_data="broadcast:in_teams_passed_test")],
+            [InlineKeyboardButton(text="У командах і не допущені до тестового",
+                                  callback_data="broadcast:in_teams_not_passed_test")],
+            [InlineKeyboardButton(text="У командах і допущені до івент",
+                                  callback_data="broadcast:in_teams_approved_event")],
+            [InlineKeyboardButton(text="У командах і не допущені до івенту",
+                                  callback_data="broadcast:in_teams_not_approved_event")],
+            [InlineKeyboardButton(text="Всім без CV", callback_data="broadcast:users_without_cv")],
+            [InlineKeyboardButton(text="Скасувати", callback_data="broadcast:cancel")]
         ]
+
     )

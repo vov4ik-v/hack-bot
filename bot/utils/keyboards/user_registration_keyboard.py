@@ -37,7 +37,7 @@ course_keyboard = ReplyKeyboardMarkup(
     ],
     resize_keyboard=True,
     one_time_keyboard=True
-)
+) 
 
 from aiogram.types import ReplyKeyboardMarkup, KeyboardButton
 

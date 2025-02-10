@@ -275,6 +275,16 @@ async def cancel_cv_upload(message: types.Message, state: FSMContext):
 @router.message(TeamCVStates.waiting_for_cv, F.document)
 async def process_cv_document(message: types.Message, state: FSMContext, db: AgnosticDatabase):
     document = message.document
+    MAX_FILE_SIZE = 50 * 1024 * 1024  # 50 МБ у байтах
+
+    if document.file_size > MAX_FILE_SIZE:
+        await state.clear()
+        await message.answer(
+            "Файл занадто великий. Максимальний розмір файлу має бути 50 МБ. Спробуй надіслати інший файл.",
+            reply_markup=get_team_keyboard(True)
+        )
+        return
+
     user_id = message.from_user.id
     await update_user_cv(
         db,
@@ -285,6 +295,7 @@ async def process_cv_document(message: types.Message, state: FSMContext, db: Agn
     )
     await state.clear()
     await message.answer("Резюме успішно отримано і збережено!✅", reply_markup=get_team_keyboard(True))
+
 
 @router.message(TeamCVStates.waiting_for_cv)
 async def fallback_cv_upload(message: types.Message):

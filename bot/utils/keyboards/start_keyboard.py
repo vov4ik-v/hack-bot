@@ -26,8 +26,8 @@ def get_start_keyboard(
             return ReplyKeyboardMarkup(
                 keyboard=[
                     [
-                        KeyboardButton(text="Більше про BEST"),
-                        KeyboardButton(text="Більше про HACKath0n"),
+                        KeyboardButton(text="Більше про BEST🚀"),
+                        KeyboardButton(text="Більше про HACKath0n👾"),
                     ]
                 ],
                 resize_keyboard=True
@@ -36,11 +36,11 @@ def get_start_keyboard(
             return ReplyKeyboardMarkup(
                 keyboard=[
                     [
-                        KeyboardButton(text="Більше про BEST"),
+                        KeyboardButton(text="Більше про BEST🚀"),
                         KeyboardButton(text="📝 Реєстрація")
                     ],
                     [
-                        KeyboardButton(text="Більше про HACKath0n")
+                        KeyboardButton(text="Більше про HACKath0n👾")
                     ]
                 ],
                 resize_keyboard=True
@@ -51,12 +51,12 @@ def get_start_keyboard(
             return ReplyKeyboardMarkup(
                 keyboard=[
                     [
-                        KeyboardButton(text="Більше про BEST"),
-                        KeyboardButton(text="Більше про HACKath0n")
+                        KeyboardButton(text="Більше про BEST🚀"),
+                        KeyboardButton(text="Більше про HACKath0n👾")
                     ],
                     [
-                        KeyboardButton(text="Моя Команда"),
-                        KeyboardButton(text="Знайти команду")
+                        KeyboardButton(text="Моя Команда👥"),
+                        KeyboardButton(text="Знайти команду🔍")
                     ]
                 ],
                 resize_keyboard=True
@@ -65,11 +65,11 @@ def get_start_keyboard(
             return ReplyKeyboardMarkup(
                 keyboard=[
                     [
-                        KeyboardButton(text="Більше про BEST"),
+                        KeyboardButton(text="Більше про BEST🚀"),
                         KeyboardButton(text="📝 Реєстрація")
                     ],
                     [
-                        KeyboardButton(text="Більше про HACKath0n")
+                        KeyboardButton(text="Більше про HACKath0n👾")
                     ]
                 ],
                 resize_keyboard=True
@@ -81,12 +81,12 @@ def get_start_keyboard(
                 return ReplyKeyboardMarkup(
                     keyboard=[
                         [
-                            KeyboardButton(text="Більше про BEST"),
-                            KeyboardButton(text="Більше про HACKath0n")
+                            KeyboardButton(text="Більше про BEST🚀"),
+                            KeyboardButton(text="Більше про HACKath0n👾")
                         ],
                         [
-                            KeyboardButton(text="Моя Команда"),
-                            KeyboardButton(text="Знайти команду")
+                            KeyboardButton(text="Моя Команда👥"),
+                            KeyboardButton(text="Знайти команду🔍")
                         ]
                     ],
                     resize_keyboard=True
@@ -95,11 +95,11 @@ def get_start_keyboard(
                 return ReplyKeyboardMarkup(
                     keyboard=[
                         [
-                            KeyboardButton(text="Більше про BEST"),
+                            KeyboardButton(text="Більше про BEST🚀"),
                             KeyboardButton(text="📝 Реєстрація")
                         ],
                         [
-                            KeyboardButton(text="Більше про HACKath0n")
+                            KeyboardButton(text="Більше про HACKath0n👾")
                         ]
                     ],
                     resize_keyboard=True
@@ -108,12 +108,12 @@ def get_start_keyboard(
             return ReplyKeyboardMarkup(
                 keyboard=[
                     [
-                        KeyboardButton(text="Більше про BEST"),
-                        KeyboardButton(text="Більше про HACKath0n"),
+                        KeyboardButton(text="Більше про BEST🚀"),
+                        KeyboardButton(text="Більше про HACKath0n👾"),
                     ],
                     [
-                        KeyboardButton(text="Моя Команда"),
-                        KeyboardButton(text="Тестове Завдання")
+                        KeyboardButton(text="Моя Команда👥"),
+                        KeyboardButton(text="Тестове Завдання📝")
                     ]
                 ],
                 resize_keyboard=True
@@ -125,12 +125,12 @@ def get_start_keyboard(
                 return ReplyKeyboardMarkup(
                     keyboard=[
                         [
-                            KeyboardButton(text="Більше про BEST"),
-                            KeyboardButton(text="Більше про HACKath0n"),
+                            KeyboardButton(text="Більше про BEST🚀"),
+                            KeyboardButton(text="Більше про HACKath0n👾"),
                         ],
                         [
-                            KeyboardButton(text="Моя Команда"),
-                            KeyboardButton(text="Тестове Завдання")
+                            KeyboardButton(text="Моя Команда👥"),
+                            KeyboardButton(text="Тестове Завдання📝")
                         ]
                     ],
                     resize_keyboard=True
@@ -140,12 +140,12 @@ def get_start_keyboard(
                     return ReplyKeyboardMarkup(
                         keyboard=[
                             [
-                                KeyboardButton(text="Більше про BEST"),
-                                KeyboardButton(text="Більше про HACKath0n")
+                                KeyboardButton(text="Більше про BEST🚀"),
+                                KeyboardButton(text="Більше про HACKath0n👾")
                             ],
                             [
-                                KeyboardButton(text="Моя Команда"),
-                                KeyboardButton(text="Знайти команду")
+                                KeyboardButton(text="Моя Команда👥"),
+                                KeyboardButton(text="Знайти команду🔍")
                             ]
                         ],
                         resize_keyboard=True
@@ -154,11 +154,11 @@ def get_start_keyboard(
                     return ReplyKeyboardMarkup(
                         keyboard=[
                             [
-                                KeyboardButton(text="Більше про BEST"),
+                                KeyboardButton(text="Більше про BEST🚀"),
                                 KeyboardButton(text="📝 Реєстрація")
                             ],
                             [
-                                KeyboardButton(text="Більше про HACKath0n")
+                                KeyboardButton(text="Більше про HACKath0n👾")
                             ]
                         ],
                         resize_keyboard=True
@@ -167,12 +167,12 @@ def get_start_keyboard(
             return ReplyKeyboardMarkup(
                 keyboard=[
                     [
-                        KeyboardButton(text="Моя Команда"),
-                        KeyboardButton(text="Де відбуватиметься івент"),
+                        KeyboardButton(text="Моя Команда👥"),
+                        KeyboardButton(text="Де відбуватиметься івент📍"),
                     ],
                     [
-                        KeyboardButton(text="Чат для учасників"),
-                        KeyboardButton(text="Загальна інформація")
+                        KeyboardButton(text="Чат для учасників💬"),
+                        KeyboardButton(text="Загальна інформація ℹ️")
                     ]
                 ],
                 resize_keyboard=True
@@ -184,12 +184,12 @@ def get_start_keyboard(
                 return ReplyKeyboardMarkup(
                     keyboard=[
                         [
-                            KeyboardButton(text="Більше про BEST"),
-                            KeyboardButton(text="Більше про HACKath0n"),
+                            KeyboardButton(text="Більше про BEST🚀"),
+                            KeyboardButton(text="Більше про HACKath0n👾"),
                         ],
                         [
-                            KeyboardButton(text="Моя Команда"),
-                            KeyboardButton(text="Тестове Завдання")
+                            KeyboardButton(text="Моя Команда👥"),
+                            KeyboardButton(text="Тестове Завдання📝")
                         ]
                     ],
                     resize_keyboard=True
@@ -199,12 +199,12 @@ def get_start_keyboard(
                     return ReplyKeyboardMarkup(
                         keyboard=[
                             [
-                                KeyboardButton(text="Більше про BEST"),
-                                KeyboardButton(text="Більше про HACKath0n")
+                                KeyboardButton(text="Більше про BEST🚀"),
+                                KeyboardButton(text="Більше про HACKath0n👾")
                             ],
                             [
-                                KeyboardButton(text="Моя Команда"),
-                                KeyboardButton(text="Знайти команду")
+                                KeyboardButton(text="Моя Команда👥"),
+                                KeyboardButton(text="Знайти команду🔍")
                             ]
                         ],
                         resize_keyboard=True
@@ -213,11 +213,11 @@ def get_start_keyboard(
                     return ReplyKeyboardMarkup(
                         keyboard=[
                             [
-                                KeyboardButton(text="Більше про BEST"),
+                                KeyboardButton(text="Більше про BEST🚀"),
                                 KeyboardButton(text="📝 Реєстрація")
                             ],
                             [
-                                KeyboardButton(text="Більше про HACKath0n")
+                                KeyboardButton(text="Більше про HACKath0n👾")
                             ]
                         ],
                         resize_keyboard=True
@@ -226,15 +226,15 @@ def get_start_keyboard(
             return ReplyKeyboardMarkup(
                 keyboard=[
                     [
-                        KeyboardButton(text="Моя Команда"),
-                        KeyboardButton(text="Правила поведінки на хакатоні"),
+                        KeyboardButton(text="Моя Команда👥"),
+                        KeyboardButton(text="Правила поведінки на хакатоні📜"),
                     ],
                     [
-                        KeyboardButton(text="Розклад"),
-                        KeyboardButton(text="Основне Завдання"),
+                        KeyboardButton(text="Розклад🕒"),
+                        KeyboardButton(text="Основне Завдання🎯"),
                     ],
                     [
-                        KeyboardButton(text="Команді потрібна допомога")
+                        KeyboardButton(text="Команді потрібна допомога🆘")
                     ]
                 ],
                 resize_keyboard=True
@@ -246,12 +246,12 @@ def get_start_keyboard(
                 return ReplyKeyboardMarkup(
                     keyboard=[
                         [
-                            KeyboardButton(text="Більше про BEST"),
-                            KeyboardButton(text="Більше про HACKath0n"),
+                            KeyboardButton(text="Більше про BEST🚀"),
+                            KeyboardButton(text="Більше про HACKath0n👾"),
                         ],
                         [
-                            KeyboardButton(text="Моя Команда"),
-                            KeyboardButton(text="Тестове Завдання")
+                            KeyboardButton(text="Моя Команда👥"),
+                            KeyboardButton(text="Тестове Завдання📝")
                         ]
                     ],
                     resize_keyboard=True
@@ -261,12 +261,12 @@ def get_start_keyboard(
                     return ReplyKeyboardMarkup(
                         keyboard=[
                             [
-                                KeyboardButton(text="Більше про BEST"),
-                                KeyboardButton(text="Більше про HACKath0n")
+                                KeyboardButton(text="Більше про BEST🚀"),
+                                KeyboardButton(text="Більше про HACKath0n👾")
                             ],
                             [
-                                KeyboardButton(text="Моя Команда"),
-                                KeyboardButton(text="Знайти команду")
+                                KeyboardButton(text="Моя Команда👥"),
+                                KeyboardButton(text="Знайти команду🔍")
                             ]
                         ],
                         resize_keyboard=True
@@ -275,11 +275,11 @@ def get_start_keyboard(
                     return ReplyKeyboardMarkup(
                         keyboard=[
                             [
-                                KeyboardButton(text="Більше про BEST"),
+                                KeyboardButton(text="Більше про BEST🚀"),
                                 KeyboardButton(text="📝 Реєстрація")
                             ],
                             [
-                                KeyboardButton(text="Більше про HACKath0n")
+                                KeyboardButton(text="Більше про HACKath0n👾")
                             ]
                         ],
                         resize_keyboard=True
@@ -288,11 +288,11 @@ def get_start_keyboard(
             return ReplyKeyboardMarkup(
                 keyboard=[
                     [
-                        KeyboardButton(text="Нас Підтримували"),
-                        KeyboardButton(text="Переможці"),
+                        KeyboardButton(text="Нас Підтримували🤍"),
+                        KeyboardButton(text="Переможці🏆"),
                     ],
                     [
-                        KeyboardButton(text="Фідбек форма")
+                        KeyboardButton(text="Фідбек форма✍🏻")
                     ]
                 ],
                 resize_keyboard=True
@@ -300,7 +300,7 @@ def get_start_keyboard(
 
     return ReplyKeyboardMarkup(
         keyboard=[
-            [KeyboardButton(text="Головне меню")]
+            [KeyboardButton(text="Головне меню🏠")]
         ],
         resize_keyboard=True
     )

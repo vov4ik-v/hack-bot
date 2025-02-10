@@ -6,7 +6,7 @@ feedback_form_caption = (
 """
 )
 
-winners_photo = "asset/team_image.jpg"
+winners_photo = "asset/team_image.png"
 winners_caption = (
     """🏆 <b>Вітаємо переможців BEST::HACKath0n 2025!</b>
 🥇
@@ -17,7 +17,7 @@ winners_caption = (
 """
 )
 
-supporters_photo = "asset/team_image.jpg"
+supporters_photo = "asset/team_image.png"
 supporters_caption = (
    """
    💚 <b>Нас підтримували</b>

@@ -1,4 +1,4 @@
-photo_path_team_image = "asset/team_image.jpg"
+photo_path_team_image = "asset/team_image.png"
 chat_link = "https://t.me/+grBvUEzRA4"
 
 text_find_team = (

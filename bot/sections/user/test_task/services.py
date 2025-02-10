@@ -15,7 +15,7 @@ async def prepare_response_based_on_stage(bot_stage: dict) -> dict:
 
     if bot_stage["isTestReady"] == "false":
         return {
-            "photo_path": "asset/test_assignment_coming_soon_image.jpg",
+            "photo_path": "asset/test_assignment_coming_soon_image.png",
             "caption": (
                 """Ого, ти справді <b>вмотивований учасник!</b> 💪
 

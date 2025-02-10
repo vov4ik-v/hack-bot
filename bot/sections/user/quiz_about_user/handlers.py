@@ -39,8 +39,13 @@ async def registration(message: types.Message, state: FSMContext, db: AgnosticDa
         return
 
     if await is_user_registered(db, username):
-        await message.answer(messages["already_registered"], parse_mode="HTML")
-        return
+        user_record = await db.get_collection("users").find_one({"contact.username": username})
+        if user_record and user_record.get("eligible") is False:
+            await message.answer("На жаль, ці змагання лише для студентів. Дякуємо за інтерес 💚")
+            return
+        else:
+            await message.answer(messages["already_registered"], parse_mode="HTML")
+            return
 
     await state.update_data(chat_id=chat_id)
     await message.answer(messages["registration_start"], parse_mode="HTML")
@@ -50,29 +55,33 @@ async def registration(message: types.Message, state: FSMContext, db: AgnosticDa
 @router.message(RegistrationStates.waiting_for_name)
 async def process_name(message: types.Message, state: FSMContext):
     if not validate_text_input(message):
-        await message.answer("Введи ім’я текстом 😜")
+        await message.answer("Введи ім’я текстом 😜",reply_markup=ReplyKeyboardRemove())
         return
     if not validate_name(message):
         await message.answer("Кількість символів перевищено. Максимальна кількість символів: 20.")
         return
     await state.update_data(name=message.text)
-    await message.answer(messages["name_correct"], parse_mode="HTML")
+    await message.answer(messages["name_correct"], parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
     await message.answer(messages["age_prompt"], parse_mode="HTML")
     await state.set_state(RegistrationStates.waiting_for_age)
 
 
 @router.message(RegistrationStates.waiting_for_age)
-async def process_age(message: types.Message, state: FSMContext):
+async def process_age(message: types.Message, state: FSMContext, db: AgnosticDatabase):
     if not validate_age(message):
-        await message.answer(messages["age_incorrect"], parse_mode="HTML")
+        await message.answer(messages["age_incorrect"], parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
+        await state.update_data(age=message.text, eligible=False)
+        state_data = await state.get_data()
+        await process_registration_data(db, state_data)
         await state.clear()
         return
+
     await state.update_data(age=message.text)
     await message.answer(messages["university_prompt"], parse_mode="HTML", reply_markup=university_keyboard)
     await state.set_state(RegistrationStates.waiting_for_university)
 
 @router.message(RegistrationStates.waiting_for_university)
-async def process_university(message: types.Message, state: FSMContext):
+async def process_university(message: types.Message, state: FSMContext, db: AgnosticDatabase):
     if not validate_text_input(message):
         await message.answer(messages["university_incorrect"], parse_mode="HTML", reply_markup=university_keyboard)
         return
@@ -84,6 +93,9 @@ async def process_university(message: types.Message, state: FSMContext):
     university = message.text
     if university in ["Ще в школі", "Вже закінчив (-ла)"]:
         await message.answer("На жаль, ці змагання тільки для студентів. Дякуємо за інтерес 💚", reply_markup=ReplyKeyboardRemove())
+        await state.update_data(university=university, eligible=False)
+        state_data = await state.get_data()
+        await process_registration_data(db, state_data)
         await state.clear()
         return
 
@@ -98,7 +110,7 @@ async def process_course(message: types.Message, state: FSMContext):
         return
 
     await state.update_data(course=message.text)
-    await message.answer(messages["technologies_prompt"], parse_mode="HTML")
+    await message.answer(messages["technologies_prompt"], parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
     await state.set_state(RegistrationStates.waiting_for_technologies)
 
 
