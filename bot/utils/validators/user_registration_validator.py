@@ -21,9 +21,12 @@ def validate_regex(message: Message, pattern: str) -> bool:
 def validate_contact_input(message: Message) -> bool:
     return isinstance(message.contact, Contact)
 
-def validate_age(message: Message) -> bool:
-    if not message.text or not message.text.isdigit():
-        return False
+def validate_age_format(message: Message) -> bool:
+    """Checks if the input is a valid number."""
+    return message.text.isdigit()
+
+def validate_age_range(message: Message) -> bool:
+    """Checks if the age is in the valid range (16-100)."""
     age = int(message.text)
     return 16 <= age <= 100
 
@@ -40,7 +43,7 @@ def validate_course(message: Message) -> bool:
         "на магістратурі": "магістратура",
         "нічого з переліченого": "інше"
     }
-    user_input = message.text.strip().lower()
+    user_input = message.text.lower()
     if user_input.isdigit():
         return int(user_input) in valid_courses.values()
     else:
@@ -60,7 +63,7 @@ def validate_technologies(message: Message) -> bool:
     return validate_text_input(message)
 
 def validate_university(message: Message) -> bool:
-    return validate_length(message, 15, "Університет")
+    return validate_length(message, 25, "Університет")
 
 def validate_name(message: Message) -> bool:
     return validate_length(message, 20, "Ім'я")

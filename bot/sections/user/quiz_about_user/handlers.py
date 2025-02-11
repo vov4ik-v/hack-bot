@@ -15,10 +15,10 @@ from bot.utils.keyboards.start_keyboard import get_start_keyboard, get_user_team
 from bot.utils.keyboards.user_registration_keyboard import consent_keyboard, contact_keyboard, course_keyboard, \
     university_keyboard, get_source_keyboard, get_it_experience_keyboard
 from bot.utils.middleware.Time import is_duplicate_request
-from bot.utils.validators.user_registration_validator import validate_age, validate_email, \
+from bot.utils.validators.user_registration_validator import validate_email, \
     validate_text_input, validate_contact_input, validate_consent, validate_course, validate_it_experience, \
     validate_length, validate_name, validate_university, validate_source, validate_it_experience_length, \
-    validate_email_length
+    validate_email_length, validate_age_format, validate_age_range
 
 router = Router()
 
@@ -43,32 +43,38 @@ async def registration(message: types.Message, state: FSMContext, db: AgnosticDa
         return
 
     await state.update_data(chat_id=chat_id)
-    await message.answer(messages["registration_start"], parse_mode="HTML")
+    await message.answer(messages["registration_start"], parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
     await state.set_state(RegistrationStates.waiting_for_name)
 
 
 @router.message(RegistrationStates.waiting_for_name)
 async def process_name(message: types.Message, state: FSMContext):
     if not validate_text_input(message):
-        await message.answer("Введи ім’я текстом 😜",reply_markup=ReplyKeyboardRemove())
+        await message.answer("Введи ім’я текстом 😜", reply_markup=ReplyKeyboardRemove())
         return
     if not validate_name(message):
-        await message.answer("Кількість символів перевищено. Максимальна кількість символів: 20.")
+        await message.answer("Кількість символів перевищено. Максимальна кількість символів: 20.",
+                             reply_markup=ReplyKeyboardRemove())
         return
+
     await state.update_data(name=message.text)
     await message.answer(messages["name_correct"], parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
+
     await message.answer(messages["age_prompt"], parse_mode="HTML")
     await state.set_state(RegistrationStates.waiting_for_age)
 
 
 @router.message(RegistrationStates.waiting_for_age)
 async def process_age(message: types.Message, state: FSMContext):
-    if not validate_age(message):
-        await message.answer(messages["age_incorrect"], parse_mode="HTML")
-        await state.clear()
+    if not validate_age_format(message):
+        await message.answer("Будь ласка, введи число 📊", parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
         return
 
-    await state.update_data(age=message.text)
+    if not validate_age_range(message):
+        await message.answer(messages["age_incorrect"], parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
+        return
+
+    await state.update_data(age=int(message.text))
     await message.answer(messages["university_prompt"], parse_mode="HTML", reply_markup=university_keyboard)
     await state.set_state(RegistrationStates.waiting_for_university)
 
@@ -79,7 +85,7 @@ async def process_university(message: types.Message, state: FSMContext, db: Agno
         return
 
     if not validate_university(message):
-        await message.answer("Кількість символів перевищено. Максимальна кількість символів: 15.")
+        await message.answer("Кількість символів перевищено. Максимальна кількість символів: 25.")
         return
 
     university = message.text

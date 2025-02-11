@@ -19,7 +19,7 @@ def get_team_keyboard(is_in_team: bool) -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 
-def cancel_send_cv_keyboard() -> ReplyKeyboardMarkup:
+def cancel_keyboard() -> ReplyKeyboardMarkup:
     keyboard = [
         [KeyboardButton(text="Скасувати❌")]
     ]
