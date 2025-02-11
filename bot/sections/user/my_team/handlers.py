@@ -152,10 +152,13 @@ async def cmd_join_team(callback_query: types.CallbackQuery, state: FSMContext, 
     await callback_query.message.answer("Введи логін команди, до якої хочеш приєднатися.", reply_markup=cancel_keyboard())
     await state.set_state(TeamJoinStates.waiting_for_team_name)
 
+
 @router.message(TeamJoinStates.waiting_for_team_name)
 async def process_join_team_name(message: types.Message, state: FSMContext, db: AgnosticDatabase):
+    """Processes the team name input and checks if the team exists before asking for the password."""
+
     user_id = message.from_user.id
-    message_text = message.text or ""
+    message_text = message.text.strip()
     test_approved, event_approved = await get_user_team_info(db, message.from_user.id)
 
     if is_duplicate_request(user_id, message_text):
@@ -164,16 +167,27 @@ async def process_join_team_name(message: types.Message, state: FSMContext, db: 
     is_registered = await is_user_registered(db, message.from_user.username)
     stage = await get_current_stage(db)
     main_kb = get_start_keyboard(stage, is_registered, test_approved, event_approved)
-    if message.text.strip().lower() == "скасувати❌":
+
+    if message_text.lower() == "скасувати❌":
         await state.clear()
-        await message.answer("Вхід в команду скасовано.❌", reply_markup=main_kb)
+        await message.answer("Вхід в команду скасовано.❌", reply_markup=get_team_keyboard(True))
         return
+
     if not await validate_text_only(message):
         return
-    team_name = message.text.strip()
-    await state.update_data(team_name=team_name)
+
+    team_doc = await get_team_by_name(db, message_text)
+    if not team_doc:
+        await message.answer(
+            f"Команду з назвою <b>{message_text}</b> не знайдено. Спробуй іншу назву або створи власну команду.",
+            parse_mode="HTML",reply_markup=main_kb)
+        await state.clear()
+        return
+
+    await state.update_data(team_name=message_text)
     await message.answer("Тепер введи пароль команди:", reply_markup=cancel_keyboard())
     await state.set_state(TeamJoinStates.waiting_for_team_password)
+
 
 @router.message(TeamJoinStates.waiting_for_team_password)
 async def process_join_team_password(message: types.Message, state: FSMContext, db: AgnosticDatabase):
@@ -283,19 +297,6 @@ async def cancel_github_upload(message: types.Message, state: FSMContext):
 
     await state.clear()
     await message.answer("Додавання GitHub-репозиторію скасовано.❌", reply_markup=get_team_keyboard(True))
-
-@router.message(F.text.casefold() == "скасувати❌", TeamCreationStates.waiting_for_team_name, TeamCreationStates.waiting_for_team_password)
-async def cancel_team_creation(message: types.Message, state: FSMContext):
-    """Handles team creation cancellation before entering a team name or password."""
-    await state.clear()  # Reset FSM state
-    await message.answer("Створення команди скасовано.❌", reply_markup=get_team_keyboard(True))
-
-@router.message(F.text.casefold() == "скасувати❌", TeamJoinStates.waiting_for_team_name, TeamJoinStates.waiting_for_team_password)
-async def cancel_team_joining(message: types.Message, state: FSMContext):
-    """Handles team joining cancellation before entering a team name or password."""
-    await state.clear()  # Fully reset the FSM state
-    await message.answer("Вхід в команду скасовано.❌", reply_markup=get_team_keyboard(True))
-
 
 @router.message(TeamGitHubStates.waiting_for_github_link)
 async def process_github_link(message: types.Message, state: FSMContext, db: AgnosticDatabase):
