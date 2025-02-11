@@ -140,9 +140,9 @@ async def send_team_info(message: Message, db: AgnosticDatabase, user_id: int):
         resume = member.get("resume")
         members_info.append(f"{name} - @{username}" if username else f"{name}")
         if resume:
-            resumes_info.append(f"{name} - {resume['file_name']}")
+            resumes_info.append(f"{name} - надіслано ✅")
         else:
-            resumes_info.append(f"{name} - резюме не надіслано.")
+            resumes_info.append(f"{name} - резюме не надіслано. ❌")
     github_repo = team_doc.get("github_repo", "Ще не надіслано")
     if github_repo:
         github_info = github_repo
