@@ -15,7 +15,6 @@ async def process_registration_data(db: AgnosticDatabase,state_data: dict):
         "email": state_data.get("email"),
         "chat_id": state_data.get("chat_id"),
         "is_admin": False,
-        "eligible": state_data.get("eligible"),
     }
     await register_user(db, user_data)
     return user_data

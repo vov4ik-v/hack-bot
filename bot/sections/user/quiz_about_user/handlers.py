@@ -39,13 +39,8 @@ async def registration(message: types.Message, state: FSMContext, db: AgnosticDa
         return
 
     if await is_user_registered(db, username):
-        user_record = await db.get_collection("users").find_one({"contact.chat_id": chat_id})
-        if user_record and user_record.get("eligible") is False:
-            await message.answer("На жаль, ці змагання лише для студентів. Дякуємо за інтерес 💚")
-            return
-        else:
-            await message.answer(messages["already_registered"], parse_mode="HTML")
-            return
+        await message.answer(messages["already_registered"], parse_mode="HTML")
+        return
 
     await state.update_data(chat_id=chat_id)
     await message.answer(messages["registration_start"], parse_mode="HTML")
@@ -67,12 +62,9 @@ async def process_name(message: types.Message, state: FSMContext):
 
 
 @router.message(RegistrationStates.waiting_for_age)
-async def process_age(message: types.Message, state: FSMContext, db: AgnosticDatabase):
+async def process_age(message: types.Message, state: FSMContext):
     if not validate_age(message):
-        await message.answer(messages["age_incorrect"], parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
-        await state.update_data(age=message.text, eligible=False)
-        state_data = await state.get_data()
-        await process_registration_data(db, state_data)
+        await message.answer(messages["age_incorrect"], parse_mode="HTML")
         await state.clear()
         return
 
@@ -92,10 +84,8 @@ async def process_university(message: types.Message, state: FSMContext, db: Agno
 
     university = message.text
     if university in ["Ще в школі", "Вже закінчив (-ла)"]:
-        await message.answer("На жаль, ці змагання тільки для студентів. Дякуємо за інтерес 💚", reply_markup=ReplyKeyboardRemove())
-        await state.update_data(university=university, eligible=False)
-        state_data = await state.get_data()
-        await process_registration_data(db, state_data)
+        await message.answer("На жаль, ці змагання тільки для студентів. Дякуємо за інтерес 💚",
+                             reply_markup=ReplyKeyboardRemove())
         await state.clear()
         return
 
