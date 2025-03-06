@@ -113,22 +113,37 @@ async def send_team_info(message: Message, db: AgnosticDatabase, user_id: int):
     username = message.from_user.username
     is_registered = await is_user_registered(db, username)
     photo = FSInputFile(photo_path)
+
     if not user_doc or not user_doc.get("team_id"):
-        await message.answer_photo(photo, caption="""
-        <b>Ти ще не в команді 🥲</b>
+        await message.answer_photo(
+            photo,
+            caption="""
+<b>Ти ще не в команді 🥲</b>
 Щоб продовжити, створи власну команду або приєднайся до вже існуючої.
 Командна робота – ключ до перемоги! 🏆
 
 🔷 <b>Створи команду</b> – збери друзів або знайди нових!
-🔷 <b>Приєднайся</b> – знайди команду та стань її частиною!""", reply_markup=not_in_team_keyboard(), parse_mode="HTML")
+🔷 <b>Приєднайся</b> – знайди команду та стань її частиною!""",
+            reply_markup=not_in_team_keyboard(),
+            parse_mode="HTML"
+        )
         return
+
     team_id = user_doc["team_id"]
     team_doc = await db.get_collection("teams").find_one({"_id": team_id})
     if not team_doc:
         await message.answer(
             "Команду не знайдено🥲. Можливо, вона була видалена. Створи нову або приєднайся до існуючої.",
-            reply_markup=get_start_keyboard(stage, is_registered, test_approved, event_approved))
+            reply_markup=get_start_keyboard(stage, is_registered, test_approved, event_approved)
+        )
         return
+
+    # Отримуємо категорію та додаємо її до назви, якщо вона встановлена
+    team_name = team_doc.get("name", "Невідома команда")
+    category = team_doc.get("category")
+    if category:
+        team_name = f"{team_name} ({category})"
+
     team_members_cursor = db.get_collection("users").find({"team_id": team_id})
     team_members = await team_members_cursor.to_list(length=None)
     members_info = []
@@ -144,16 +159,12 @@ async def send_team_info(message: Message, db: AgnosticDatabase, user_id: int):
         else:
             resumes_info.append(f"{name} - резюме не надіслано. ❌")
     github_repo = team_doc.get("github_repo", "Ще не надіслано")
-    if github_repo:
-        github_info = github_repo
-    else:
-        github_info = "Ще не надіслано"
-
+    github_info = github_repo if github_repo else "Ще не надіслано"
     test_task_status = team_doc.get("test_task_status", False)
     participation_status = team_doc.get("participation_status", False)
     test_task_display = "❌" if not test_task_status else "✅"
     participation_display = "✅" if participation_status else "❌"
-    team_name = team_doc.get("name", "Невідома команда")
+
     members_text = "\n".join(members_info)
     resumes_text = "\n".join(resumes_info)
     response_text = (
@@ -167,7 +178,20 @@ async def send_team_info(message: Message, db: AgnosticDatabase, user_id: int):
     team_photo_path = "asset/team_image.png"
     try:
         photo = FSInputFile(team_photo_path)
-        await message.answer_photo(photo=photo, caption=response_text, parse_mode="HTML",
-                                   reply_markup=get_team_keyboard(True))
+        await message.answer_photo(
+            photo=photo,
+            caption=response_text,
+            parse_mode="HTML",
+            reply_markup=get_team_keyboard(True)
+        )
     except FileNotFoundError:
         await message.answer(response_text, parse_mode="HTML", reply_markup=get_team_keyboard(True))
+
+
+async def update_team_category(db: AgnosticDatabase, team_id: ObjectId, category: str):
+
+    teams_collection = db.get_collection("teams")
+    await teams_collection.update_one(
+        {"_id": team_id},
+        {"$set": {"category": category}}
+    )

@@ -14,3 +14,6 @@ class TeamGitHubStates(StatesGroup):
 
 class TeamCVStates(StatesGroup):
     waiting_for_cv = State()
+
+class TeamCategoryStates(StatesGroup):
+    waiting_for_category = State()

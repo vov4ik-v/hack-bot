@@ -285,7 +285,23 @@ async def handle_broadcast_message(message: Message, state: FSMContext, db: Agno
                 {"resume": None}
             ]
         }).to_list(length=None)
-
+    elif target == "hard":
+        teams = await db.get_collection("teams").find({"category": "HARD"}).to_list(length=None)
+        team_ids = [team["_id"] for team in teams]
+        recipients = await get_users_by_team_ids(db, team_ids)
+    elif target == "soft":
+        teams = await db.get_collection("teams").find({"category": "SOFT"}).to_list(length=None)
+        team_ids = [team["_id"] for team in teams]
+        recipients = await get_users_by_team_ids(db, team_ids)
+    elif target == "no_category":
+        teams = await db.get_collection("teams").find({
+            "$or": [{"category": {"$exists": False}}, {"category": ""}]
+        }).to_list(length=None)
+        team_ids = [team["_id"] for team in teams]
+        recipients = await get_users_by_team_ids(db, team_ids)
+    else:
+        await message.answer("Невідомий тип розсилки.")
+        return
 
     if message.text:
         content_type = "text"
@@ -340,6 +356,7 @@ async def handle_broadcast_message(message: Message, state: FSMContext, db: Agno
         parse_mode="HTML"
     )
     await state.clear()
+
 
 
 @router.message(F.text == "Робота з командами")

@@ -4,12 +4,13 @@ from aiogram.types import FSInputFile, InlineKeyboardMarkup, InlineKeyboardButto
 from motor.core import AgnosticDatabase
 
 from bot.sections.user.my_team.services import user_has_team, update_user_cv, update_team_github, unset_user_team, \
-    get_team_by_name, set_user_team, create_team
-from bot.sections.user.my_team.states import TeamCreationStates, TeamJoinStates, TeamGitHubStates, TeamCVStates
+    get_team_by_name, set_user_team, create_team, update_team_category
+from bot.sections.user.my_team.states import TeamCreationStates, TeamJoinStates, TeamGitHubStates, TeamCVStates, \
+    TeamCategoryStates
 from bot.sections.user.quiz_about_user.services import is_user_registered
 from bot.stages.utils.stages_service import get_current_stage
 from bot.utils.keyboards.team_keyboard import get_team_keyboard, cancel_keyboard, handle_find_team_keyboard, \
-    cancel_send_github_keyboard
+    cancel_send_github_keyboard, get_select_category_keyboard
 from bot.utils.middleware.Time import is_duplicate_request
 from bot.utils.validators.my_team_validator import validate_text_only
 from bot.stages.utils.bot_stage_filter import BotStageFilter
@@ -287,6 +288,34 @@ async def cmd_send_github(message: types.Message, state: FSMContext, db: Agnosti
     )
     await state.set_state(TeamGitHubStates.waiting_for_github_link)
 
+@router.message(F.text == "Обрати категорію")
+async def cmd_select_category(message: types.Message, state: FSMContext, db: AgnosticDatabase):
+    user_id = message.from_user.id
+    message_text = message.text or ""
+
+    if is_duplicate_request(user_id, message_text):
+        return
+
+    if not await user_has_team(db, user_id):
+        await message.answer("Спочатку приєднайся до команди або створи свою.")
+        return
+
+    await message.answer("Обери категорію проєкту:", reply_markup=get_select_category_keyboard(True))
+    await state.set_state(TeamCategoryStates.waiting_for_category)
+
+
+@router.message(F.text == "Скасувати❌", TeamCategoryStates.waiting_for_category)
+async def cancel_github_upload(message: types.Message, state: FSMContext):
+    user_id = message.from_user.id
+    message_text = message.text or ""
+
+    if is_duplicate_request(user_id, message_text):
+        return
+
+    await state.clear()
+    await message.answer("Вибір категорії скасовано.❌", reply_markup=get_team_keyboard(True))
+
+
 @router.message(F.text == "Скасувати❌", TeamGitHubStates.waiting_for_github_link)
 async def cancel_github_upload(message: types.Message, state: FSMContext):
     user_id = message.from_user.id
@@ -357,6 +386,36 @@ async def cancel_cv_upload(message: types.Message, state: FSMContext):
 
     await state.clear()
     await message.answer("Завантаження CV скасовано.❌", reply_markup=get_team_keyboard(True))
+
+@router.message(TeamCategoryStates.waiting_for_category)
+async def process_category(message: types.Message, state: FSMContext, db: AgnosticDatabase):
+    user_id = message.from_user.id
+    message_text = message.text or ""
+
+    if is_duplicate_request(user_id, message_text):
+        return
+
+    if not await validate_text_only(message):
+        return
+
+    category = message.text.strip().upper()
+    if category not in ["SOFT", "HARD"]:
+        await message.answer("Обери категорію проєкту:", reply_markup=get_select_category_keyboard(True))
+        return
+
+    users_collection = db.get_collection("users")
+    user_doc = await users_collection.find_one({"chat_id": user_id})
+    if not user_doc or "team_id" not in user_doc:
+        await message.answer("Ти не маєш команди. Спочатку створи або приєднайся до команди.")
+        await state.clear()
+        return
+
+    team_id = user_doc["team_id"]
+    await update_team_category(db, team_id, category)
+    await state.clear()
+    await message.answer(f"Категорія успішно оновлена: {category}", reply_markup=get_team_keyboard(True))
+
+
 
 @router.message(TeamCVStates.waiting_for_cv, F.document)
 async def process_cv_document(message: types.Message, state: FSMContext, db: AgnosticDatabase):
