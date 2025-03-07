@@ -10,7 +10,7 @@ from bot.sections.user.my_team.states import TeamCreationStates, TeamJoinStates,
 from bot.sections.user.quiz_about_user.services import is_user_registered
 from bot.stages.utils.stages_service import get_current_stage
 from bot.utils.keyboards.team_keyboard import get_team_keyboard, cancel_keyboard, handle_find_team_keyboard, \
-    cancel_send_github_keyboard, get_select_category_keyboard
+    cancel_send_github_keyboard, get_select_category_keyboard_for_creation
 from bot.utils.middleware.Time import is_duplicate_request
 from bot.utils.validators.my_team_validator import validate_text_only
 from bot.stages.utils.bot_stage_filter import BotStageFilter
@@ -64,7 +64,7 @@ async def handle_back(message: types.Message, db):
     is_registered = await is_user_registered(db, message.from_user.username)
     stage = await get_current_stage(db)
     main_kb = get_start_keyboard(stage, is_registered, test_approved, event_approved)
-    await message.answer("Ви вернулись в головне меню.", reply_markup=main_kb)
+    await message.answer("Ти вернувся в головне меню.", reply_markup=main_kb)
 
 @router.callback_query(F.data == "create_team")
 async def cmd_create_team(callback_query: types.CallbackQuery, state: FSMContext, db: AgnosticDatabase):
@@ -109,36 +109,70 @@ async def process_team_name(message: types.Message, state: FSMContext, db: Agnos
 async def process_team_password(message: types.Message, state: FSMContext, db: AgnosticDatabase):
     user_id = message.from_user.id
     message_text = message.text or ""
-    test_approved, event_approved = await get_user_team_info(db, message.from_user.id)
 
-    if is_duplicate_request(user_id, message_text):
-        return
+    # if is_duplicate_request(user_id, message_text):
+    #     return
 
-    is_registered = await is_user_registered(db, message.from_user.username)
-    stage = await get_current_stage(db)
-    main_kb = get_start_keyboard(stage, is_registered, test_approved, event_approved)
     if message.text.strip().lower() == "скасувати❌":
+        test_approved, event_approved = await get_user_team_info(db, user_id)
+        is_registered = await is_user_registered(db, message.from_user.username)
+        stage = await get_current_stage(db)
+        main_kb = get_start_keyboard(stage, is_registered, test_approved, event_approved)
         await state.clear()
         await message.answer("Створення команди скасовано.❌", reply_markup=main_kb)
         return
 
     if not await validate_text_only(message):
         return
+
     password = message.text.strip()
-    user_id = message.from_user.id
     data = await state.get_data()
     team_name = data.get("team_name")
     existing_team = await get_team_by_name(db, team_name)
     if existing_team:
-        await message.answer(f"Команда з назвою <b>{team_name}</b> вже існує. Обери іншу назву або приєднайся до неї.",
-                             parse_mode="HTML")
+        await message.answer(
+            f"Команда з назвою <b>{team_name}</b> вже існує. Обери іншу назву або приєднайся до неї.",
+            parse_mode="HTML"
+        )
         await state.clear()
         return
-    team_id = await create_team(db, team_name, password)
+
+    await state.update_data(password=password)
+    await message.answer("Обери категорію проєкту:", reply_markup=get_select_category_keyboard_for_creation())
+    await state.set_state(TeamCreationStates.waiting_for_category)
+
+@router.message(TeamCreationStates.waiting_for_category)
+async def process_team_category_creation(message: types.Message, state: FSMContext, db: AgnosticDatabase):
+    user_id = message.from_user.id
+    message_text = message.text.strip().upper()
+
+    if is_duplicate_request(user_id, message_text):
+        return
+
+    if message_text.lower() == "скасувати❌":
+        test_approved, event_approved = await get_user_team_info(db, user_id)
+        is_registered = await is_user_registered(db, message.from_user.username)
+        stage = await get_current_stage(db)
+        main_kb = get_start_keyboard(stage, is_registered, test_approved, event_approved)
+        await state.clear()
+        await message.answer("Створення команди скасовано.❌", reply_markup=main_kb)
+        return
+
+    if message_text not in ["SOFT", "HARD"]:
+        await message.answer("Будь ласка, обери категорію: SOFT або HARD.", reply_markup=get_select_category_keyboard_for_creation())
+        return
+
+    data = await state.get_data()
+    team_name = data.get("team_name")
+    password = data.get("password")
+
+    # Створюємо команду з переданою категорією
+    team_id = await create_team(db, team_name, password, message_text)
     await set_user_team(db, user_id, team_id)
     await state.clear()
-    await message.answer(f"Команда {team_name} успішно створена.🎉")
+    await message.answer(f"Команда <b>{team_name}</b> з категорією <b>{message_text}</b> успішно створена.🎉", parse_mode="HTML")
     await send_team_info(message, db, user_id)
+
 
 @router.callback_query(F.data == "join_team")
 async def cmd_join_team(callback_query: types.CallbackQuery, state: FSMContext, db: AgnosticDatabase):
@@ -171,7 +205,7 @@ async def process_join_team_name(message: types.Message, state: FSMContext, db: 
 
     if message_text.lower() == "скасувати❌":
         await state.clear()
-        await message.answer("Вхід в команду скасовано.❌", reply_markup=get_team_keyboard(True))
+        await message.answer("Вхід в команду скасовано.❌", reply_markup=main_kb)
         return
 
     if not await validate_text_only(message):
@@ -288,20 +322,6 @@ async def cmd_send_github(message: types.Message, state: FSMContext, db: Agnosti
     )
     await state.set_state(TeamGitHubStates.waiting_for_github_link)
 
-@router.message(F.text == "Обрати категорію")
-async def cmd_select_category(message: types.Message, state: FSMContext, db: AgnosticDatabase):
-    user_id = message.from_user.id
-    message_text = message.text or ""
-
-    if is_duplicate_request(user_id, message_text):
-        return
-
-    if not await user_has_team(db, user_id):
-        await message.answer("Спочатку приєднайся до команди або створи свою.")
-        return
-
-    await message.answer("Обери категорію проєкту:", reply_markup=get_select_category_keyboard(True))
-    await state.set_state(TeamCategoryStates.waiting_for_category)
 
 
 @router.message(F.text == "Скасувати❌", TeamCategoryStates.waiting_for_category)
@@ -386,36 +406,6 @@ async def cancel_cv_upload(message: types.Message, state: FSMContext):
 
     await state.clear()
     await message.answer("Завантаження CV скасовано.❌", reply_markup=get_team_keyboard(True))
-
-@router.message(TeamCategoryStates.waiting_for_category)
-async def process_category(message: types.Message, state: FSMContext, db: AgnosticDatabase):
-    user_id = message.from_user.id
-    message_text = message.text or ""
-
-    if is_duplicate_request(user_id, message_text):
-        return
-
-    if not await validate_text_only(message):
-        return
-
-    category = message.text.strip().upper()
-    if category not in ["SOFT", "HARD"]:
-        await message.answer("Обери категорію проєкту:", reply_markup=get_select_category_keyboard(True))
-        return
-
-    users_collection = db.get_collection("users")
-    user_doc = await users_collection.find_one({"chat_id": user_id})
-    if not user_doc or "team_id" not in user_doc:
-        await message.answer("Ти не маєш команди. Спочатку створи або приєднайся до команди.")
-        await state.clear()
-        return
-
-    team_id = user_doc["team_id"]
-    await update_team_category(db, team_id, category)
-    await state.clear()
-    await message.answer(f"Категорія успішно оновлена: {category}", reply_markup=get_team_keyboard(True))
-
-
 
 @router.message(TeamCVStates.waiting_for_cv, F.document)
 async def process_cv_document(message: types.Message, state: FSMContext, db: AgnosticDatabase):

@@ -22,7 +22,7 @@ async def user_has_team(db: AgnosticDatabase, user_id: int) -> bool:
     return False
 
 
-async def create_team(db: AgnosticDatabase, team_name: str, team_password: str) -> ObjectId:
+async def create_team(db: AgnosticDatabase, team_name: str, team_password: str, category: str) -> ObjectId:
     """
     Створює нову команду в колекції 'teams' та повертає її _id.
     """
@@ -31,7 +31,8 @@ async def create_team(db: AgnosticDatabase, team_name: str, team_password: str) 
     result = await teams_collection.insert_one({
         "name": team_name,
         "password": team_password,
-        "github_repo": None,  # або "" - за замовчуванням
+        "github_repo": None,
+        "category": category,
         "created_at": datetime.now(),
         "participation_status": False,
         "test_task_status": False,
@@ -138,11 +139,8 @@ async def send_team_info(message: Message, db: AgnosticDatabase, user_id: int):
         )
         return
 
-    # Отримуємо категорію та додаємо її до назви, якщо вона встановлена
     team_name = team_doc.get("name", "Невідома команда")
     category = team_doc.get("category")
-    if category:
-        team_name = f"{team_name} ({category})"
 
     team_members_cursor = db.get_collection("users").find({"team_id": team_id})
     team_members = await team_members_cursor.to_list(length=None)
@@ -169,6 +167,7 @@ async def send_team_info(message: Message, db: AgnosticDatabase, user_id: int):
     resumes_text = "\n".join(resumes_info)
     response_text = (
         f"<b>Команда {team_name}</b>\n\n"
+        f"<b>Категорія проєкту:</b> {category if category else 'Не встановлено'}\n\n"
         f"<b>Учасники команди:</b>\n{members_text}\n\n"
         f"<b>Резюме:</b>\n{resumes_text}\n\n"
         f"<b>Гітхаб:</b> - {github_info}\n\n"

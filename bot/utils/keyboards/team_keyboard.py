@@ -7,9 +7,6 @@ def get_team_keyboard(is_in_team: bool) -> ReplyKeyboardMarkup:
     if is_in_team:
         keyboard = [
             [
-                KeyboardButton(text="Обрати категорію"),
-            ],
-            [
                 KeyboardButton(text="Надіслати GitHub-репозиторій📂"),
                 KeyboardButton(text="Надіслати резюме📄"),
             ],
@@ -22,18 +19,11 @@ def get_team_keyboard(is_in_team: bool) -> ReplyKeyboardMarkup:
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 
-def get_select_category_keyboard(is_in_team: bool) -> ReplyKeyboardMarkup:
-    if is_in_team:
-        keyboard = [
-            [
-                KeyboardButton(text="SOFT"),
-                KeyboardButton(text="HARD"),
-            ],
-            [
-                KeyboardButton(text="Скасувати❌"),
-            ]
-        ]
-
+def get_select_category_keyboard_for_creation() -> ReplyKeyboardMarkup:
+    keyboard = [
+        [KeyboardButton(text="SOFT"), KeyboardButton(text="HARD")],
+        [KeyboardButton(text="Скасувати❌")]
+    ]
     return ReplyKeyboardMarkup(keyboard=keyboard, resize_keyboard=True)
 
 def cancel_keyboard() -> ReplyKeyboardMarkup:

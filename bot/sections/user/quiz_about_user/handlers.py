@@ -72,6 +72,7 @@ async def process_age(message: types.Message, state: FSMContext):
 
     if not validate_age_range(message):
         await message.answer(messages["age_incorrect"], parse_mode="HTML", reply_markup=ReplyKeyboardRemove())
+        await state.clear()
         return
 
     await state.update_data(age=int(message.text))
