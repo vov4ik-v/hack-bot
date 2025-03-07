@@ -196,8 +196,8 @@ async def process_join_team_name(message: types.Message, state: FSMContext, db: 
     message_text = message.text.strip()
     test_approved, event_approved = await get_user_team_info(db, message.from_user.id)
 
-    if is_duplicate_request(user_id, message_text):
-        return
+    # if is_duplicate_request(user_id, message_text):
+    #     return
 
     is_registered = await is_user_registered(db, message.from_user.username)
     stage = await get_current_stage(db)
@@ -230,8 +230,8 @@ async def process_join_team_password(message: types.Message, state: FSMContext, 
     message_text = message.text or ""
     test_approved, event_approved = await get_user_team_info(db, message.from_user.id)
 
-    if is_duplicate_request(user_id, message_text):
-        return
+    # if is_duplicate_request(user_id, message_text):
+    #     return
 
     is_registered = await is_user_registered(db, message.from_user.username)
     stage = await get_current_stage(db)
