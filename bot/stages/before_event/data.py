@@ -12,7 +12,7 @@ participants_chat_caption = (
     """💬 <b>Приєднуйся до спільного чату!</b>
 Спілкуйся з іншими учасниками, став питання організаторам та знаходь однодумців!"""
 )
-participants_chat_link = "https://t.me/+pSsGP63"
+participants_chat_link = "https://t.me/+0jSQLlFMh5o5ZjBi"
 
 general_info_photo = "asset/more_about_hack.png"
 general_info_caption = (

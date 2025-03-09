@@ -129,10 +129,14 @@ async def process_team_password(message: types.Message, state: FSMContext, db: A
     data = await state.get_data()
     team_name = data.get("team_name")
     existing_team = await get_team_by_name(db, team_name)
+    test_approved, event_approved = await get_user_team_info(db, user_id)
+    is_registered = await is_user_registered(db, message.from_user.username)
+    stage = await get_current_stage(db)
+    main_kb = get_start_keyboard(stage, is_registered, test_approved, event_approved)
     if existing_team:
         await message.answer(
             f"Команда з назвою <b>{team_name}</b> вже існує. Обери іншу назву або приєднайся до неї.",
-            parse_mode="HTML"
+            parse_mode="HTML", reply_markup=main_kb
         )
         await state.clear()
         return
